@@ -35,6 +35,11 @@ jobs:
         with:
           node-version: 22
 
-      - name: test Shit
-        run: |
-          cdk
+      - name: Install dependecies
+        run: npm i
+
+      - name: Bootstrap cdk
+        run: npx cdk Bootstrap
+
+      - name: Deploy cdk changes
+        run: npx cdk deploy --require-approval never
