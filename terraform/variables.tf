@@ -6,5 +6,5 @@ variable "aws_region" {
 variable "bucket_name" {
   type = string
   description = "Globally unique name for the S3 bucket"
-  default = "to-do-app-bucket"
+  default = "to-do-app-bucket-someflairyk"
 }
