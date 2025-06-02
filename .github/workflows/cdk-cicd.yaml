@@ -37,4 +37,4 @@ jobs:
 
       - name: test Shit
         run: |
-          ls
+          npx cdk
