@@ -39,7 +39,7 @@ jobs:
         run: npm i
 
       - name: Bootstrap cdk
-        run: npx cdk Bootstrap
+        run: npx cdk bootstrap
 
       - name: Deploy cdk changes
         run: npx cdk deploy --require-approval never
