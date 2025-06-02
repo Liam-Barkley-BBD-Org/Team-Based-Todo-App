@@ -1,10 +1,12 @@
-name: CICD
+name: CDK-MIGRATIONS-CICD
 
 on:
   push:
     branches: [cicd-setup]
+    paths: ["migrations/**", "cdk-todo-app/**"]
   pull_request:
     branches: [cicd-setup]
+    paths: ["migrations/**", "cdk-todo-app/**"]
 env:
   AWS_REGION: af-south-1
 
@@ -17,7 +19,7 @@ defaults:
     working-directory: cdk-todo-app
 
 jobs:
-  configure_aws:
+  AWS-CDK-MIGRATIONS:
     runs-on: [ubuntu-latest]
     steps:
       - name: Configure AWS Credentials Action for GitHub Actions
@@ -51,5 +53,7 @@ jobs:
             CdkTodoAppStacktodoapppostg
           parse-json-secrets: true
 
-      - name: Check DB Conncetion Information
-        run: export
+      - name: Run DB Migrations
+        run: |
+          docker run --rm --volume ${{ github.workspace }}/migrations:/flyway/sql:ro redgate/flyway -url="jdbc:postgresql://${{env.CDKTODOAPPSTACKTODOAPPPOSTG_HOST}}:5432/${{env.CDKTODOAPPSTACKTODOAPPPOSTG_DBNAME}}" -user="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_USERNAME }}" -password="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_PASSWORD }}" repair
+          docker run --rm --volume ${{ github.workspace }}/migrations:/flyway/sql:ro redgate/flyway -url="jdbc:postgresql://${{env.CDKTODOAPPSTACKTODOAPPPOSTG_HOST}}:5432/${{env.CDKTODOAPPSTACKTODOAPPPOSTG_DBNAME}}" -user="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_USERNAME }}" -password="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_PASSWORD }}" migrate
