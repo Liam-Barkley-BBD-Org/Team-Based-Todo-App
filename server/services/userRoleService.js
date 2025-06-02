@@ -7,7 +7,7 @@ export async function getUserRoleById(id) {
 }
 
 export async function getUserRolesByUserId(user_id) {
-  return await db(TABLE_NAME).where({ user_id }).select('id', 'role_id');
+  return await db(TABLE_NAME).where({ user_id });
 }
 
 export async function getUserRoleByUserIdAndRoleId(user_id, role_id) {

@@ -16,7 +16,7 @@ const getUserRoles = async (req, res, next) => {
 
         if (!(await getUserById(id))) {
             status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'User does not exist' };
+            response = { error: 'User not found' };
         } else {
             const userRoles = await getUserRolesByUserId(id);
             status = HTTP_STATUS.OK;
@@ -36,7 +36,7 @@ const postUserRole = async (req, res, next) => {
 
         if (!(await getUserById(user_id))) {
             status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'User does not exist' };
+            response = { error: 'User not found' };
         } else if (await getUserRoleByUserIdAndRoleId(user_id, role_id)) {
             status = HTTP_STATUS.CONFLICT;
             response = { error: 'Cannot assign role to user' };
