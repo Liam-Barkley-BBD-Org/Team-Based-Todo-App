@@ -12,6 +12,10 @@ permissions:
   id-token: write
   contents: read
 
+defaults:
+  run:
+    working-directory: terraform
+
 jobs:
   configure_aws:
     runs-on: [ubuntu-latest]
