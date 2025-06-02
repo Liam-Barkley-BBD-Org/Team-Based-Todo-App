@@ -50,4 +50,6 @@ jobs:
           secret-ids: |
             CdkTodoAppStacktodoapppostg
           parse-json-secrets: true
+
+      - name: Check DB Conncetion Information
         run: export
