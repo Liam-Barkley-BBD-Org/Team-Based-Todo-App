@@ -14,7 +14,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: terraform
+    working-directory: cdk-todo-app
 
 jobs:
   configure_aws:
@@ -30,17 +30,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: 🧰 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        run: terraform plan
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+      - name: test Shit
+        run: |
+          ls
