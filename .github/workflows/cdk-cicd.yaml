@@ -43,3 +43,11 @@ jobs:
 
       - name: Deploy cdk changes
         run: npx cdk deploy --require-approval never
+
+      - name: Get DB Connection Information
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          secret-ids: |
+            CdkTodoAppStacktodoapppostg
+          parse-json-secrets: true
+        run: export

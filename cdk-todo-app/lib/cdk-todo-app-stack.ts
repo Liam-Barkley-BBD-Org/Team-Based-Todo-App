@@ -11,7 +11,7 @@ export class CdkTodoAppStack extends cdk.Stack {
     super(scope, id, props);
 
     //FRONT-END STUFF
-    new s3.Bucket(this, 'Bucket2', {
+    new s3.Bucket(this, 'to-do-app-bucket', {
       bucketName: 'to-do-app-bucket-uniqueflairyk',
       versioned: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -30,19 +30,14 @@ export class CdkTodoAppStack extends cdk.Stack {
       vpc: rdsVpc,
       description: 'Allow DB access',
       allowAllOutbound: true,
+      securityGroupName: 'rds-security-group'
     });
 
     dbSecurityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(5432),
-      'Allow PostgreSQL access'
-    );
-
-    dbSecurityGroup.addEgressRule( //This will be destroyed yk
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(5432),
-      'Allow all incoming connections'
-    );
+      ec2.Port.allTraffic(),
+      'Make the DB Publically accesible'
+    )
 
     const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', { secretName: 'CdkTodoAppStacktodoapppostg' })
 
@@ -64,7 +59,9 @@ export class CdkTodoAppStack extends cdk.Stack {
       publiclyAccessible: true, //NOT FOR LONG HOE
       vpcSubnets: {
         subnetType: ec2.SubnetType.PUBLIC
-      }
+      },
+      securityGroups: [dbSecurityGroup],
+
     });
     //BACK-END STUFF
   }
