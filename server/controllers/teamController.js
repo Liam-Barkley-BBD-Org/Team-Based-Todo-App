@@ -1,8 +1,8 @@
-import { getUserById } from '../services/userService.js';
+import { getUserById } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
-import { getTeamById, getTeamByName, getTeamsByOwnerId, createTeam } from '../services/teamService.js';
-import { createTeamMember } from '../services/teamMemberService.js';
+import { getTeamById, getTeamByName, getTeamsByOwnerId, createTeam } from '../daos/teamDao.js';
+import { createTeamMember } from '../daos/teamMemberDao.js';
 
 const getTeam = async (req, res, next) => {
     try {

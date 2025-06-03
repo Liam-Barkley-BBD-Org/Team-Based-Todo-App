@@ -1,7 +1,7 @@
-import { getUserById } from '../services/userService.js';
+import { getUserById } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
-import { getTeamById } from '../services/teamService.js';
-import { createTodoSnapshot } from '../services/todoSnapshotService.js';
+import { getTeamById } from '../daos/teamDao.js';
+import { createTodoSnapshot } from '../daos/todoSnapshotDao.js';
 
 import { 
     getTodoById,
@@ -11,7 +11,7 @@ import {
     getAssignedTodosByUserId,
     updateTodo,
     createTodo,
-} from '../services/todoService.js';
+} from '../daos/todoDao.js';
 
 const getTodo = async (req, res, next) => {
     try {

@@ -1,4 +1,4 @@
-import { getUserById } from '../services/userService.js';
+import { getUserById } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
 import { 
@@ -7,7 +7,7 @@ import {
     createUserRole,
     getUserRoleById, 
     removeUserRole,
-} from '../services/userRoleService.js';
+} from '../daos/userRoleDao.js';
 
 const getUserRoles = async (req, res, next) => {
     try {

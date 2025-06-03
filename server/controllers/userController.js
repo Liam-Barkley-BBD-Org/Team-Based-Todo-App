@@ -1,4 +1,4 @@
-import { getUserById, getUserByUsername, createUser } from '../services/userService.js';
+import { getUserById, getUserByUsername, createUser } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import bcrypt from 'bcrypt';
 
