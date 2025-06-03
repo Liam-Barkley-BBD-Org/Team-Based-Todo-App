@@ -8,8 +8,8 @@ import {
     getAllTodosByUserId,
     getOwnedTodosByUserId,
     getAssignedTodosByUserId,
+    updateTodo,
     createTodo,
-    patchTodo,
 } from '../services/todoService.js';
 
 const getTodo = async (req, res, next) => {
@@ -83,6 +83,39 @@ const getUserTodos = async (req, res, next) => {
     }
 };
 
+const patchTodo = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { title, description, is_open, assigned_user_id } = req.body;
+        let status, response;
+
+        const fields = {};
+        if (title !== undefined) fields.title = title;
+        if (description !== undefined) fields.description = description;
+        if (is_open !== undefined) fields.is_open = is_open;
+        if (assigned_user_id !== undefined) fields.assigned_user_id = assigned_user_id;
+
+        if (Object.keys(fields).length === 0) {
+            status = HTTP_STATUS.BAD_REQUEST;
+            response = { error: 'No fields provided' };
+        } else {
+            if (!(await getTodoById(id))) {
+                status = HTTP_STATUS.NOT_FOUND;
+                response = { error: 'Todo not found' };
+            } else {
+                const updated = await updateTodo(id, fields);
+                status = HTTP_STATUS.OK;
+                response = updated; 
+            }
+        }
+
+        res.status(status).json(response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 const postTodo = async (req, res, next) => {
     try {
         const { title, description, created_at, created_by_user_id, team_id, assigned_user_id } = req.body;
@@ -110,4 +143,4 @@ const postTodo = async (req, res, next) => {
     }
 };
 
-export { getTodo, getTeamTodos, getUserTodos, postTodo };
+export { getTodo, getTeamTodos, getUserTodos, patchTodo, postTodo };

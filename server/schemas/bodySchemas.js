@@ -29,6 +29,13 @@ const createTodoSchema = Joi.object({
   assigned_user_id: Joi.number().integer().allow(null),
 });
 
+const patchTodoSchema = Joi.object({
+  title: Joi.string().min(1).max(64),
+  description: Joi.string().min(1).max(256),
+  is_open: Joi.boolean(),
+  assigned_user_id: Joi.number().integer().allow(null),
+}).min(1);
+
 const createTodoSnapshotSchema = Joi.object({
   todo_id: Joi.number().integer().required(),
   snapshot_at : Joi.date().iso().required(),
@@ -41,5 +48,6 @@ export {
   createUserRoleSchema,
   createTeamSchema,
   createTeamMemberSchema,
-  createTodoSchema
+  patchTodoSchema,
+  createTodoSchema,
 };

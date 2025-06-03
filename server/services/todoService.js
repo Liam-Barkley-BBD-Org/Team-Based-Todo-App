@@ -29,7 +29,7 @@ export async function createTodo({ title, description, created_at, created_by_us
   return todo;
 }
 
-export async function patchTodo(id, fields) {
+export async function updateTodo(id, fields) {
   const [updated] = await db(TABLE_NAME)
     .where({ id })
     .update(fields)
