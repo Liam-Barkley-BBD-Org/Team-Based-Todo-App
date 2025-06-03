@@ -3,9 +3,11 @@ import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import { getTeamById } from '../services/teamService.js';
 
 import { 
+    getTeamMemberById,
     getMembersByTeamId, 
     getTeamsByUserId, 
     createTeamMember,
+    removeTeamMember,
     getTeamMemberByTeamIdAndUserId,
 } from '../services/teamMemberService.js';
 
@@ -75,4 +77,24 @@ const postTeamMember = async (req, res, next) => {
     }
 };
 
-export { getUserTeams, getTeamMembers, postTeamMember };
+const deleteTeamMember = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        let status, response;
+
+        if (!(await getTeamMemberById(id))) {
+            status = HTTP_STATUS.NOT_FOUND;
+            response = { error: 'Team member not found' };
+        } else {
+            await removeTeamMember({ id });
+            status = HTTP_STATUS.NO_CONTENT;
+            response = {};
+        }
+
+        res.status(status).json(response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { getUserTeams, getTeamMembers, postTeamMember, deleteTeamMember };

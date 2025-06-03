@@ -33,10 +33,10 @@ const postUser = async (req, res, next) => {
       status = HTTP_STATUS.CONFLICT;
       response = { error: 'Username already taken' };
     } else {
-      const password_hash = await bcrypt.hash(password, 12);
+      const hashed_password = await bcrypt.hash(password, 12);
       const encrypted_2fa_secret = 'TODO';
 
-      const user = await createUser({ username, password_hash, encrypted_2fa_secret });
+      const user = await createUser({ username, hashed_password, encrypted_2fa_secret });
       status = HTTP_STATUS.CREATED;
       response = user;
     }

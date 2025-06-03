@@ -2,6 +2,7 @@ import { getUserById } from '../services/userService.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
 import { getTeamById, getTeamByName, getTeamsByOwnerId, createTeam } from '../services/teamService.js';
+import { createTeamMember } from '../services/teamMemberService.js';
 
 const getTeam = async (req, res, next) => {
     try {
@@ -56,6 +57,7 @@ const postTeam = async (req, res, next) => {
             response = { error: 'Team name taken' };
         } else {
             const team = await createTeam({ name, owner_user_id });
+            await createTeamMember({ team_id: team.id, user_id: team.owner_user_id });
             status = HTTP_STATUS.CREATED;
             response = team;
         }
