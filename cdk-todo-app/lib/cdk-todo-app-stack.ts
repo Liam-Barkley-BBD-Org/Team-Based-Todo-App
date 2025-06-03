@@ -5,19 +5,51 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
+import { AwsCliLayer } from 'aws-cdk-lib/lambda-layer-awscli';
+import { CertificateValidation, KeyAlgorithm } from 'aws-cdk-lib/aws-certificatemanager';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 export class CdkTodoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     //FRONT-END STUFF
-    new s3.Bucket(this, 'to-do-app-bucket', {
+    const toDoAppBucket = new s3.Bucket(this, 'to-do-app-bucket', {
       bucketName: 'to-do-app-bucket-uniqueflairyk',
       versioned: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const hostedZone = new HostedZone(this, 'hosted-zone-front-end', {
+      zoneName: 'acceleratedteamproductivity.shop',
+    })
+
+    const certificate = new cdk.aws_certificatemanager.Certificate(this, 'front-end-certificate', {
+      domainName: '*.acceleratedteamproductivity.shop',
+      certificateName: 'front-end-acceleratedteamproductivity-cert',
+      keyAlgorithm: KeyAlgorithm.RSA_2048,
+      validation: CertificateValidation.fromDns(hostedZone),
+    })
+
+    const frontEndDistribution = new Distribution(this, 'bucket-distribution', {
+      defaultBehavior: {
+        origin: S3BucketOrigin.withOriginAccessControl(toDoAppBucket),
+        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
+      },
+      defaultRootObject: 'index.html',
+      // certificate: certificate,
+    })
+
+    // const frontEndRecord = new ARecord(this, 'normalRoute', {
+    //   recordName: '',
+    //   target: RecordTarget.fromValues()
+    //   zone: hostedZone
+    // })
 
     //SECURITY STUFF
     const rdsVpc = new ec2.Vpc(this, 'RdsVpc', {
@@ -66,3 +98,4 @@ export class CdkTodoAppStack extends cdk.Stack {
     //BACK-END STUFF
   }
 }
+
