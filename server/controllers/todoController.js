@@ -1,6 +1,7 @@
 import { getUserById } from '../services/userService.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import { getTeamById } from '../services/teamService.js';
+import { createTodoSnapshot } from '../services/todoSnapshotService.js';
 
 import { 
     getTodoById,
@@ -104,6 +105,14 @@ const patchTodo = async (req, res, next) => {
                 response = { error: 'Todo not found' };
             } else {
                 const updated = await updateTodo(id, fields);
+
+                await createTodoSnapshot({
+                    todo_id: updated.id,
+                    snapshot_at: new Date().toISOString(),
+                    is_open: updated.is_open,
+                    assigned_user_id: updated.assigned_user_id
+                });
+
                 status = HTTP_STATUS.OK;
                 response = updated; 
             }
@@ -114,7 +123,6 @@ const patchTodo = async (req, res, next) => {
         next(error);
     }
 };
-
 
 const postTodo = async (req, res, next) => {
     try {
@@ -133,6 +141,14 @@ const postTodo = async (req, res, next) => {
         } else {
             const is_open = true;
             const todo = await createTodo({ title, description, created_at, created_by_user_id, team_id, is_open, assigned_user_id });
+
+            await createTodoSnapshot({
+                todo_id: todo.id,
+                snapshot_at: new Date().toISOString(),
+                is_open: todo.is_open,
+                assigned_user_id: todo.assigned_user_id
+            });
+
             status = HTTP_STATUS.CREATED;
             response = todo;
         }

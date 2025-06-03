@@ -26,7 +26,7 @@ const createTodoSchema = Joi.object({
   created_at: Joi.date().iso().required(),
   created_by_user_id: Joi.number().integer().required(),
   team_id: Joi.number().integer().required(),
-  assigned_user_id: Joi.number().integer().allow(null),
+  assigned_user_id: Joi.number().integer().allow(null).required(),
 });
 
 const patchTodoSchema = Joi.object({
@@ -35,13 +35,6 @@ const patchTodoSchema = Joi.object({
   is_open: Joi.boolean(),
   assigned_user_id: Joi.number().integer().allow(null),
 }).min(1);
-
-const createTodoSnapshotSchema = Joi.object({
-  todo_id: Joi.number().integer().required(),
-  snapshot_at : Joi.date().iso().required(),
-  is_open: Joi.boolean().required(),
-  assigned_user_id: Joi.number().integer().allow(null),
-});
 
 export { 
   createUserSchema,
