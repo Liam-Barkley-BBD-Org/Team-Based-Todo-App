@@ -17,5 +17,5 @@ export const todoRouter = express.Router();
 todoRouter.get('/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), getTodo);
 todoRouter.get('team/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), getTeamTodos);
 todoRouter.get('user/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), validateMiddleware(getTodoByUserId, PROPERTIES.QUERY), getUserTodos);
-todoRouter.patch('/', validateMiddleware(patchTodoSchema, PROPERTIES.BODY), patchTodo);
+todoRouter.patch('/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), validateMiddleware(patchTodoSchema, PROPERTIES.BODY), patchTodo);
 todoRouter.post('/', validateMiddleware(createTodoSchema, PROPERTIES.BODY), postTodo);
