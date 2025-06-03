@@ -7,6 +7,7 @@ import { roleRouter } from './routers/roleRouter.js';
 import { userRoleRouter } from './routers/userRoleRouter.js';
 import { teamRouter } from './routers/teamRouter.js';
 import { teamMemberRouter } from './routers/teamMemberRouter.js';
+import { todoRouter } from './routers/todoRouter.js';
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/teams', teamRouter);
+app.use('/api/todos', todoRouter);
 app.use('/api/user_roles', userRoleRouter);
 app.use('/api/team_members', teamMemberRouter);
 
