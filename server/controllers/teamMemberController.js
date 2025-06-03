@@ -80,15 +80,23 @@ const postTeamMember = async (req, res, next) => {
 const deleteTeamMember = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const teamMember = await getTeamMemberById(id);
         let status, response;
 
-        if (!(await getTeamMemberById(id))) {
+        if (!teamMember) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team member not found' };
         } else {
-            await removeTeamMember({ id });
-            status = HTTP_STATUS.NO_CONTENT;
-            response = {};
+            const team = await getTeamById(teamMember.team_id);
+
+            if (teamMember.user_id == team.owner_user_id) {
+                status = HTTP_STATUS.BAD_REQUEST;
+                response = { error: 'Cannot remove team member' };
+            } else {
+                await removeTeamMember({ id });
+                status = HTTP_STATUS.NO_CONTENT;
+                response = {};
+            }
         }
 
         res.status(status).json(response);
