@@ -3,6 +3,8 @@ import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import { getTeamById } from '../daos/teamDao.js';
 import { createTodoSnapshot } from '../daos/todoSnapshotDao.js';
 
+import { getTeamMemberByTeamIdAndUserId } from '../daos/teamMemberDao.js';
+
 import { 
     getTodoById,
     getTodosByTeamId,
@@ -99,23 +101,24 @@ const patchTodo = async (req, res, next) => {
         if (Object.keys(fields).length === 0) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'No fields provided' };
+        } else if (!(await getTodoById(id))) {
+            status = HTTP_STATUS.NOT_FOUND;
+            response = { error: 'Todo not found' };
+        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: team_id, user_id: assigned_user_id }))) {
+            status = HTTP_STATUS.BAD_REQUEST;
+            response = { error: 'Cannot assign to this user' }; 
         } else {
-            if (!(await getTodoById(id))) {
-                status = HTTP_STATUS.NOT_FOUND;
-                response = { error: 'Todo not found' };
-            } else {
-                const updated = await updateTodo(id, fields);
+            const updated = await updateTodo(id, fields);
 
-                await createTodoSnapshot({
-                    todo_id: updated.id,
-                    snapshot_at: new Date().toISOString(),
-                    is_open: updated.is_open,
-                    assigned_user_id: updated.assigned_user_id
-                });
+            await createTodoSnapshot({
+                todo_id: updated.id,
+                snapshot_at: new Date().toISOString(),
+                is_open: updated.is_open,
+                assigned_user_id: updated.assigned_user_id
+            });
 
-                status = HTTP_STATUS.OK;
-                response = updated; 
-            }
+            status = HTTP_STATUS.OK;
+            response = updated; 
         }
 
         res.status(status).json(response);
@@ -138,6 +141,9 @@ const postTodo = async (req, res, next) => {
         } else if (!(await getTeamById(team_id))) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
+        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: team_id, user_id: assigned_user_id }))) {
+            status = HTTP_STATUS.BAD_REQUEST;
+            response = { error: 'Cannot assign to this user' }; 
         } else {
             const is_open = true;
             const todo = await createTodo({ title, description, created_at, created_by_user_id, team_id, is_open, assigned_user_id });
