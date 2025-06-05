@@ -9,6 +9,7 @@ import {
   getUserTodos,
   patchTodo,
   postTodo,
+  deleteTodo,
 } from '../controllers/todoController.js';
 
 export const todoRouter = express.Router();

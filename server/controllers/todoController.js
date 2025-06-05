@@ -13,6 +13,7 @@ import {
     getAssignedTodosByUserId,
     updateTodo,
     createTodo,
+    softDeleteTodo,
 } from '../daos/todoDao.js';
 
 const getTodo = async (req, res, next) => {
@@ -165,4 +166,25 @@ const postTodo = async (req, res, next) => {
     }
 };
 
-export { getTodo, getTeamTodos, getUserTodos, patchTodo, postTodo };
+const deleteTodo = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    let status, response;
+
+    const existing = await getTodoById(id);
+
+    if (!(await getTodoById(id))) {
+        status = HTTP_STATUS.NOT_FOUND;
+        response = { error: 'Todo not found' }; 
+    } else {
+        const deleted = await softDeleteTodo(id);
+        status = HTTP_STATUS.OK;
+    }
+
+    res.status(statusK).json();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getTodo, getTeamTodos, getUserTodos, patchTodo, postTodo, deleteTodo };
