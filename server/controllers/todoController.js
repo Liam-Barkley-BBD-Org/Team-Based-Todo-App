@@ -171,8 +171,6 @@ const deleteTodo = async (req, res, next) => {
     const { id } = req.params;
     let status, response;
 
-    const existing = await getTodoById(id);
-
     if (!(await getTodoById(id))) {
         status = HTTP_STATUS.NOT_FOUND;
         response = { error: 'Todo not found' }; 
@@ -181,7 +179,7 @@ const deleteTodo = async (req, res, next) => {
         status = HTTP_STATUS.OK;
     }
 
-    res.status(statusK).json();
+    res.status(status).json();
   } catch (error) {
     next(error);
   }
