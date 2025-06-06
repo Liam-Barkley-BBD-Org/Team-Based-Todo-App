@@ -1,4 +1,7 @@
 import express from 'express';
+import cors from "cors";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import errorHandler from './middlewares/errorHandlerMiddleware.js';
 
 import { HTTP_STATUS } from "./utils/httpStatusUtil.js";
@@ -8,9 +11,21 @@ import { userRoleRouter } from './routers/userRoleRouter.js';
 import { teamRouter } from './routers/teamRouter.js';
 import { teamMemberRouter } from './routers/teamMemberRouter.js';
 import { todoRouter } from './routers/todoRouter.js';
+import { authRouter } from "./routers/authRouter.js";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+  })
+);
 
 // routes
 app.use('/api/users', userRouter);
@@ -19,6 +34,7 @@ app.use('/api/teams', teamRouter);
 app.use('/api/todos', todoRouter);
 app.use('/api/user_roles', userRoleRouter);
 app.use('/api/team_members', teamMemberRouter);
+app.use("/api/auth", authRouter);
 
 app.use((req, res, next) => {
   res.status(HTTP_STATUS.NOT_FOUND).json();
