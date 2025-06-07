@@ -6,7 +6,7 @@ const LoginPage: React.FC = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [, setError] = useState("");
 
     const passwordScore = password ? zxcvbn(password).score : 0;
 

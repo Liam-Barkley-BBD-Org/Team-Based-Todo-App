@@ -63,19 +63,7 @@ const mockTask: Task = {
   },
 }
 
-const teams = [
-  { value: "alpha", label: "Team Alpha" },
-  { value: "beta", label: "Team Beta" },
-  { value: "gamma", label: "Team Gamma" },
-]
 
-const users = [
-  { value: "", label: "Unassigned" },
-  { value: "1", label: "Alice Johnson" },
-  { value: "2", label: "Bob Smith" },
-  { value: "3", label: "Charlie Brown" },
-  { value: "4", label: "Diana Prince" },
-]
 
 const priorities = [
   { value: "low", label: "Low" },
@@ -295,10 +283,6 @@ export default function TaskDetailPage() {
     gap: "16px",
   }
 
-  const buttonGroupStyle: React.CSSProperties = {
-    display: "flex",
-    gap: "8px",
-  }
 
   const toastStyle: React.CSSProperties = {
     position: "fixed",

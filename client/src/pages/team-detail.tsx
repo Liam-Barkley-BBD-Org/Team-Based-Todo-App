@@ -2,15 +2,16 @@
 
 import type React from "react"
 
+import { ArrowLeft, CheckCircle, Clock, Crown, Link, Plus, UserPlus } from "lucide-react"
 import { useState } from "react"
-import { CheckCircle, Clock, Plus, ArrowLeft, UserPlus, Crown, Link } from "lucide-react"
 import { PureAvatar } from "../components/pure-avatar"
 import { PureBadge } from "../components/pure-badge"
 import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
+import { CardContent, PureCard } from "../components/pure-card"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { Task, Team, User, TaskDetailModal } from "../components/task-detail-modal"
+import type { Task, Team, User } from "../components/task-detail-modal"
+import { TaskDetailModal } from "../components/task-detail-modal"
 
 
 // Mock data for Team Alpha

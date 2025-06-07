@@ -4,6 +4,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
+import { execSync } from 'child_process';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
@@ -22,6 +23,8 @@ export class CdkTodoAppStack extends cdk.Stack {
     super(scope, id, props);
 
     //FRONT-END STUFF
+    execSync('npm run build', { cwd: './../client', stdio: 'inherit' });
+
     const toDoAppBucket = new s3.Bucket(this, 'to-do-app-bucket', {
       bucketName: 'to-do-app-bucket-v16',
       versioned: true,
@@ -32,7 +35,7 @@ export class CdkTodoAppStack extends cdk.Stack {
 
     new BucketDeployment(this, 'front-end-bucket-deployment', {
       destinationBucket: toDoAppBucket,
-      sources: [Source.asset('./../front-end')],
+      sources: [Source.asset('./../client/dist')],
       cacheControl: [CacheControl.noCache()]
     })
 
@@ -151,7 +154,7 @@ export class CdkTodoAppStack extends cdk.Stack {
     fargateService.targetGroup.configureHealthCheck({
       path: '/',
       healthyHttpCodes: '200-399',
-      
+
     });
 
     new cdk.CfnOutput(this, 'BackendURL', {
