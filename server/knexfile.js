@@ -22,7 +22,7 @@ try {
   console.error('Failed getting secrets')
   throw error;
 }
-const secret = response
+const DBsecret = JSON.parse(response.SecretString)
 
 dotenv.config();
 
@@ -30,11 +30,11 @@ export default {
   development: {
     client: 'pg',
     connection: {
-      host: process.env.DATABASE_HOST,
-      port: Number(process.env.DATABASE_PORT),
-      database: process.env.DATABASE_NAME,
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
+      host: DBsecret.host,
+      port: Number(DBsecret.port),
+      database: DBsecret.dbname,
+      user: DBsecret.username,
+      password: DBsecret.password,
     },
   },
 };
