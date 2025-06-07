@@ -1,7 +1,6 @@
 import Joi from 'joi';
 
 const createUserSchema = Joi.object({
-  email: Joi.string().max(256).required(),
   username: Joi.string().max(64).required(),
   password: Joi.string().max(72).required(), // bcrypt only uses first 72 bytes
 });
@@ -22,19 +21,26 @@ const createTeamMemberSchema = Joi.object({
 });
 
 const createTodoSchema = Joi.object({
-  title: Joi.string().max(64).required(),
-  description: Joi.string().max(256).required(),
+  title: Joi.string().min(1).max(64).required(),
+  description: Joi.string().min(1).max(256).required(),
   created_at: Joi.date().iso().required(),
-  due_date: Joi.date().iso().required(),
+  created_by_user_id: Joi.number().integer().required(),
   team_id: Joi.number().integer().required(),
-  completed_at: Joi.date().iso().allow(null),
-  assigned_user_id: Joi.number().integer().allow(null),
+  assigned_user_id: Joi.number().integer().allow(null).required(),
 });
+
+const patchTodoSchema = Joi.object({
+  title: Joi.string().min(1).max(64),
+  description: Joi.string().min(1).max(256),
+  is_open: Joi.boolean(),
+  assigned_user_id: Joi.number().integer().allow(null),
+}).min(1);
 
 export { 
   createUserSchema,
   createUserRoleSchema,
   createTeamSchema,
   createTeamMemberSchema,
-  createTodoSchema
+  patchTodoSchema,
+  createTodoSchema,
 };

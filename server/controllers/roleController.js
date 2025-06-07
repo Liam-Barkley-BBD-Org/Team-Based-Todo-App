@@ -1,4 +1,4 @@
-import { getAllRoles, getRoleById } from '../services/roleService.js';
+import { getAllRoles, getRoleById } from '../daos/roleDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
 const getRoles = async (req, res, next) => {

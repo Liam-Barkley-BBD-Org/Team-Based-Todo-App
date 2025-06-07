@@ -7,11 +7,13 @@ import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
+import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { AwsCliLayer } from 'aws-cdk-lib/lambda-layer-awscli';
 import { CertificateValidation, KeyAlgorithm } from 'aws-cdk-lib/aws-certificatemanager';
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
+import { ARecord, CnameRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
+import { S3DeployAction } from 'aws-cdk-lib/aws-codepipeline-actions';
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 
 export class CdkTodoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -19,11 +21,18 @@ export class CdkTodoAppStack extends cdk.Stack {
 
     //FRONT-END STUFF
     const toDoAppBucket = new s3.Bucket(this, 'to-do-app-bucket', {
-      bucketName: 'to-do-app-bucket-uniqueflairyk',
+      bucketName: 'to-do-app-bucket-v16',
       versioned: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true
     });
+
+    new BucketDeployment(this, 'front-end-bucket-deployment', {
+      destinationBucket: toDoAppBucket,
+      sources: [Source.asset('./../front-end')],
+      cacheControl: [CacheControl.noCache()]
+    })
 
     const hostedZone = new HostedZone(this, 'hosted-zone-front-end', {
       zoneName: 'acceleratedteamproductivity.shop',
@@ -42,16 +51,24 @@ export class CdkTodoAppStack extends cdk.Stack {
         viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
       },
       defaultRootObject: 'index.html',
-      // certificate: certificate,
+      certificate: certificate,
+      domainNames: ['app.acceleratedteamproductivity.shop'],
+      enableIpv6: false,
     })
 
-    // const frontEndRecord = new ARecord(this, 'normalRoute', {
-    //   recordName: '',
-    //   target: RecordTarget.fromValues()
-    //   zone: hostedZone
+    const frontEndRecord = new ARecord(this, 'front-end-aroute', {
+      target: RecordTarget.fromAlias(new CloudFrontTarget(frontEndDistribution)),
+      zone: hostedZone,
+      recordName: 'app'
+    })
+
+    // const redirectToApp = new CnameRecord(this, 'front-end-approute', {
+    //   domainName: 'app.acceleratedteamproductivity.shop',
+    //   zone: hostedZone,
     // })
 
-    //SECURITY STUFF
+    // //SECURITY STUFF
+
     const rdsVpc = new ec2.Vpc(this, 'RdsVpc', {
       maxAzs: 2, // Recommended for RDS HA
     });
