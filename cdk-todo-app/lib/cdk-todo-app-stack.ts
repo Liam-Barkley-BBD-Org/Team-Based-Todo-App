@@ -5,6 +5,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
@@ -14,6 +15,7 @@ import { ARecord, CnameRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-
 import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { S3DeployAction } from 'aws-cdk-lib/aws-codepipeline-actions';
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
+import * as ecs_patterns from 'aws-cdk-lib/aws-ecs-patterns';
 
 export class CdkTodoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -86,7 +88,6 @@ export class CdkTodoAppStack extends cdk.Stack {
       ec2.Peer.anyIpv4(),
       ec2.Port.allTraffic(),
       'Make the DB Publically accesible'
-      
     )
 
     const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', { secretName: 'CdkTodoAppStacktodoapppostg' })
@@ -112,7 +113,42 @@ export class CdkTodoAppStack extends cdk.Stack {
       },
       securityGroups: [dbSecurityGroup],
     });
+
     //BACK-END STUFF
+    const cluster = new ecs.Cluster(this, 'FargateCluster', {
+      vpc: rdsVpc
+    });
+
+    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'FargateService', {
+      cluster,
+      cpu: 256,
+      memoryLimitMiB: 512,
+      desiredCount: 1,
+      publicLoadBalancer: true,
+      certificate,
+      domainName: 'api.acceleratedteamproductivity.shop',
+      domainZone: hostedZone,
+      listenerPort: 443,
+      protocol: cdk.aws_elasticloadbalancingv2.ApplicationProtocol.HTTPS,
+      redirectHTTP: true,
+      taskImageOptions: {
+        image: ecs.ContainerImage.fromAsset('./../server'), // path to your Dockerfile
+        containerPort: 3000, // your Express app port
+        environment: {
+          NODE_ENV: 'production',
+          API_PORT: '3000'
+        },
+      },
+    });
+
+    fargateService.targetGroup.configureHealthCheck({
+      path: '/',
+      healthyHttpCodes: '200-399',
+    });
+
+    new cdk.CfnOutput(this, 'BackendURL', {
+      value: `https://api.acceleratedteamproductivity.shop`,
+    });
   }
 }
 
