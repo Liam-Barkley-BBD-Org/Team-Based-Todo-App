@@ -151,6 +151,7 @@ export class CdkTodoAppStack extends cdk.Stack {
     fargateService.targetGroup.configureHealthCheck({
       path: '/',
       healthyHttpCodes: '200-399',
+      
     });
 
     new cdk.CfnOutput(this, 'BackendURL', {

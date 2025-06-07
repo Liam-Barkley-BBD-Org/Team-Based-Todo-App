@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import errorHandler from './middlewares/errorHandlerMiddleware.js';
 
 import { HTTP_STATUS } from "./utils/httpStatusUtil.js";
@@ -13,6 +13,10 @@ const app = express();
 app.use(express.json());
 
 // routes
+app.get('/',(req, res) => {
+  res.status(200).send('OK')
+})
+
 app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/teams', teamRouter);
