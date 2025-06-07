@@ -23,7 +23,7 @@ export class CdkTodoAppStack extends cdk.Stack {
     super(scope, id, props);
 
     //FRONT-END STUFF
-    execSync('npm run i', { cwd: './../client', stdio: 'inherit' });
+    execSync('npm i', { cwd: './../client', stdio: 'inherit' });
     execSync('npm run build', { cwd: './../client', stdio: 'inherit' });
 
     const toDoAppBucket = new s3.Bucket(this, 'to-do-app-bucket', {
