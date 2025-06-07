@@ -110,7 +110,6 @@ export class CdkTodoAppStack extends cdk.Stack {
         subnetType: ec2.SubnetType.PUBLIC
       },
       securityGroups: [dbSecurityGroup],
-
     });
     //BACK-END STUFF
   }
