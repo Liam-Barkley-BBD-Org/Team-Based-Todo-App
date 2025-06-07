@@ -23,8 +23,23 @@ const getTodo = async (req, res, next) => {
         let status, response;
 
         if (todo) {
+            const assignedUser = todo.assigned_user_id
+                ? await getUserById(todo.assigned_user_id)
+                : null;
+
+            const creator = await getUserById(todo.created_by_user_id);
+
+            const team = todo.team_id
+                ? await getTeamById(todo.team_id)
+                : null;
+
             status = HTTP_STATUS.OK;
-            response = todo;
+            response = {
+                ...todo,
+                team,
+                created_by_user: creator,
+                assigned_user: assignedUser
+            };
         } else {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
@@ -41,13 +56,28 @@ const getTeamTodos = async (req, res, next) => {
         const { id } = req.params;
         let status, response;
 
-        if (!(await getTeamById(id))) {
+        const team = await getTeamById(id);
+        if (!team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
         } else {
-            const teamTodos = await getTodosByTeamId(id);
+            const todos = await getTodosByTeamId(id);
+
+            const mappedTodos = await Promise.all(
+                todos.map(async (todo) => {
+                    const assignedUser = todo.assigned_user_id
+                        ? await getUserById(todo.assigned_user_id)
+                        : null;
+
+                    return {
+                        ...todo,
+                        assigned_user: assignedUser
+                    };
+                })
+            );
+
             status = HTTP_STATUS.OK;
-            response = teamTodos || []; 
+            response = mappedTodos;
         }
 
         res.status(status).json(response);
@@ -62,7 +92,8 @@ const getUserTodos = async (req, res, next) => {
         const { role } = req.query;
         let status, response;
 
-        if (!(await getUserById(id))) {
+        const user = await getUserById(id);
+        if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
         } else {
@@ -77,8 +108,25 @@ const getUserTodos = async (req, res, next) => {
                 default:
                     todos = await getAllTodosByUserId(id);
             }
+
+            const mappedTodos = await Promise.all(
+                todos.map(async (todo) => {
+                    const team = await getTeamById(todo.team_id);
+
+                    const assignedUser = todo.assigned_user_id
+                        ? await getUserById(todo.assigned_user_id)
+                        : null;
+
+                    return {
+                        ...todo,
+                        team,
+                        assigned_user: assignedUser
+                    };
+                })
+            );
+
             status = HTTP_STATUS.OK;
-            response = todos || []; 
+            response = mappedTodos;
         }
 
         res.status(status).json(response);

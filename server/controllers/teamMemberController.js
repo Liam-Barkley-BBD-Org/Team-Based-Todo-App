@@ -13,16 +13,28 @@ import {
 
 const getUserTeams = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { id: user_id } = req.params;
         let status, response;
 
-        if (!(await getUserById(id))) {
+        const user = await getUserById(user_id);
+        if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
         } else {
-            const userTeams = await getTeamsByUserId(id);
+            const userTeams = await getTeamsByUserId(user_id);
+            const mappedUserTeams = await Promise.all(
+                userTeams.map(async (membership) => {
+                    const team = await getTeamById(membership.team_id);
+                    return {
+                        ...membership,
+                        user,
+                        team,
+                    };
+                })
+            );
+
             status = HTTP_STATUS.OK;
-            response = userTeams || []; 
+            response = mappedUserTeams;
         }
 
         res.status(status).json(response);
@@ -31,18 +43,32 @@ const getUserTeams = async (req, res, next) => {
     }
 };
 
+
 const getTeamMembers = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { id: team_id } = req.params;
         let status, response;
 
-        if (!(await getTeamById(id))) {
+        const team = await getTeamById(team_id);
+        if (!team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
         } else {
-            const teamMembers = await getMembersByTeamId(id);
+            const teamMembers = await getMembersByTeamId(team_id);
+
+            const mappedTeamMembers = await Promise.all(
+                teamMembers.map(async (member) => {
+                    const user = await getUserById(member.user_id);
+                    return {
+                        ...member,
+                        user,
+                        team
+                    };
+                })
+            );
+
             status = HTTP_STATUS.OK;
-            response = teamMembers || []; 
+            response = mappedTeamMembers;
         }
 
         res.status(status).json(response);
