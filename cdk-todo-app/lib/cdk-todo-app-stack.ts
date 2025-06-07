@@ -141,6 +141,13 @@ export class CdkTodoAppStack extends cdk.Stack {
       },
     });
 
+    fargateService.taskDefinition.taskRole.addToPrincipalPolicy(
+      new cdk.aws_iam.PolicyStatement({
+        actions:['secretsmanager:GetSecretValue'],
+        resources:['*']
+      })
+    )
+
     fargateService.targetGroup.configureHealthCheck({
       path: '/',
       healthyHttpCodes: '200-399',
