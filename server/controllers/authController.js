@@ -26,7 +26,7 @@ const login = async (req, res, next) => {
       status = HTTP_STATUS.UNAUTHORIZED;
       response = { message: "Invalid credentials" };
     } else {
-      const valid = await bcrypt.compare(password, userauth.password_hash);
+      const valid = await bcrypt.compare(password, userauth.hashed_password);
       if (!valid) {
         status = HTTP_STATUS.UNAUTHORIZED;
         response = { message: "Invalid credentials" };

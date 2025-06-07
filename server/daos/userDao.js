@@ -28,5 +28,5 @@ export async function getUserAuthDetails(username) {
   return await db(TABLE_NAME)
     .where({ username })
     .first()
-    .select("password_hash", "encrypted_2fa_secret");
+    .select("hashed_password", "encrypted_2fa_secret");
 }

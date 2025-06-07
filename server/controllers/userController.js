@@ -1,6 +1,8 @@
 import { getUserById, getUserByUsername, createUser } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import bcrypt from 'bcrypt';
+import speakeasy from 'speakeasy';
+import { encrypt } from '../utils/cryptoUtil.js';
 
 const getUser = async (req, res, next) => {
   try {
@@ -31,12 +33,18 @@ const postUser = async (req, res, next) => {
 
     if (existingUser) {
       status = HTTP_STATUS.CONFLICT;
-      response = { error: 'Username already taken' };
+      response = { error: "Username already taken" };
     } else {
       const hashed_password = await bcrypt.hash(password, 12);
-      const encrypted_2fa_secret = 'TODO';
-
-      const user = await createUser({ username, hashed_password, encrypted_2fa_secret });
+      const _2faSecret = speakeasy.generateSecret({
+        name: "TO-DO App",
+      });
+      const encrypted_2fa_secret = encrypt(_2faSecret.base32);
+      const user = await createUser({
+        username,
+        hashed_password,
+        encrypted_2fa_secret,
+      });
       status = HTTP_STATUS.CREATED;
       response = user;
     }
