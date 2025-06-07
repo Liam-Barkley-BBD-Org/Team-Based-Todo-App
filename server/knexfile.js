@@ -35,6 +35,10 @@ export default {
       database: DBsecret.dbname,
       user: DBsecret.username,
       password: DBsecret.password,
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
     },
   },
 };
