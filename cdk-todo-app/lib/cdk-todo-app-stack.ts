@@ -86,6 +86,7 @@ export class CdkTodoAppStack extends cdk.Stack {
       ec2.Peer.anyIpv4(),
       ec2.Port.allTraffic(),
       'Make the DB Publically accesible'
+      
     )
 
     const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', { secretName: 'CdkTodoAppStacktodoapppostg' })
