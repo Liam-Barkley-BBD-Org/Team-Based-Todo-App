@@ -25,10 +25,10 @@ export async function createTeamMember({ team_id, user_id }) {
   return teamMember;
 }
 
-export async function removeTeamMember(id) {
-  const [teamMember] = await db(TABLE_NAME)
-    .where({ id })
+export async function removeTeamMember({ user_id, team_id }) {
+  const [deleted] = await db(TABLE_NAME)
+    .where({ user_id, team_id })
     .delete()
-    .returning(['id', 'team_id', 'user_id']);
-  return teamMember;
+    .returning(['id', 'user_id', 'team_id']);
+  return deleted;
 }

@@ -53,23 +53,24 @@ const postUserRole = async (req, res, next) => {
 };
 
 const deleteUserRole = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        let status, response;
+  try {
+    const { user_id, role_id } = req.body;
+    let status, response;
 
-        if (!(await getUserRoleById(id))) {
-            status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'Cannot remove this role' };
-        } else {
-            await removeUserRole({ id });
-            status = HTTP_STATUS.NO_CONTENT;
-            response = {};
-        }
-
-        res.status(status).json(response);
-    } catch (error) {
-        next(error);
+    const userRole = await getUserRoleByUserIdAndRoleId(user_id, role_id);
+    if (!userRole) {
+      status = HTTP_STATUS.NOT_FOUND;
+      response = { error: 'Cannot remove this role' };
+    } else {
+      await removeUserRole({ id: userRole.id });
+      status = HTTP_STATUS.NO_CONTENT;
+      response = {};
     }
+
+    res.status(status).json(response);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export { postUserRole, getUserRoles, deleteUserRole };

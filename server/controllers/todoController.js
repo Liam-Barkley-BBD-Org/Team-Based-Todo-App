@@ -1,8 +1,7 @@
 import { getUserById } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import { getTeamById } from '../daos/teamDao.js';
-import { createTodoSnapshot } from '../daos/todoSnapshotDao.js';
-
+import { createTodoSnapshot, getTodoSnapshotsByTodoIdAndFromDate } from '../daos/todoSnapshotDao.js';
 import { getTeamMemberByTeamIdAndUserId } from '../daos/teamMemberDao.js';
 
 import { 
@@ -135,10 +134,59 @@ const getUserTodos = async (req, res, next) => {
     }
 };
 
+const getTodoReport = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { period, n } = req.query;
+
+    const now = new Date();
+    let fromDate = new Date(now);
+
+    switch (period) {
+      case 'weeks':
+        fromDate.setDate(now.getDate() - 7 * n);
+        break;
+      case 'months':
+        fromDate.setMonth(now.getMonth() - n);
+        break;
+      case 'years':
+        fromDate.setFullYear(now.getFullYear() - n);
+        break;
+    }
+
+    const todos = await getTodosByTeamId(id);
+
+    const breakdown = {
+      open: [],
+      closed: [],
+    };
+
+    for (const todo of todos) {
+      const snapshots = await getTodoSnapshotsByTodoIdAndFromDate(todo.id, fromDate.toISOString());
+
+      const timelineEntry = {
+        todo,
+        snapshots,
+      };
+
+      if (todo.is_open) {
+        breakdown.open.push(timelineEntry);
+      } else {
+        breakdown.closed.push(timelineEntry);
+      }
+    }
+
+    res.status(HTTP_STATUS.OK).json(breakdown);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const patchTodo = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, description, is_open, assigned_user_id } = req.body;
+        const todo = await getTodoById(id);
         let status, response;
 
         const fields = {};
@@ -150,10 +198,10 @@ const patchTodo = async (req, res, next) => {
         if (Object.keys(fields).length === 0) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'No fields provided' };
-        } else if (!(await getTodoById(id))) {
+        } else if (!todo) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
-        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: team_id, user_id: assigned_user_id }))) {
+        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: todo.team_id, user_id: assigned_user_id }))) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'Cannot assign to this user' }; 
         } else {
@@ -233,4 +281,4 @@ const deleteTodo = async (req, res, next) => {
   }
 };
 
-export { getTodo, getTeamTodos, getUserTodos, patchTodo, postTodo, deleteTodo };
+export { getTodo, getTeamTodos, getUserTodos, getTodoReport, patchTodo, postTodo, deleteTodo };

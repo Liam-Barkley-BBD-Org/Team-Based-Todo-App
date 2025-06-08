@@ -12,11 +12,14 @@ export default (schema, property) => (req, res, next) => {
     next(new Error('Invalid property type for schema validation'));
   }
 
-  const result = schema.validate(req[property]);
+  const { value, error } = schema.validate(req[property], {
+    abortEarly: false,
+    stripUnknown: true,
+  });
 
-  if (result.error) {
-    return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
-      errors: result.error.details.map(detail => detail.message),
+  if (error) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({
+      errors: error.details.map(detail => detail.message),
     });
   }
 
