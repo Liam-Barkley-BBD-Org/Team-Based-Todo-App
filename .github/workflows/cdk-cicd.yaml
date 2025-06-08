@@ -1,4 +1,4 @@
-name: CDK-MIGRATIONS-CICD
+name: CDK-CICD
 
 on:
   push:
@@ -45,15 +45,3 @@ jobs:
 
       - name: Deploy cdk changes
         run: npx cdk deploy --require-approval never
-
-      - name: Get DB Connection Information
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
-        with:
-          secret-ids: |
-            CdkTodoAppStacktodoapppostg
-          parse-json-secrets: true
-
-      - name: Run DB Migrations
-        run: |
-          docker run --rm --volume ${{ github.workspace }}/migrations:/flyway/sql:ro redgate/flyway -url="jdbc:postgresql://${{env.CDKTODOAPPSTACKTODOAPPPOSTG_HOST}}:5432/${{env.CDKTODOAPPSTACKTODOAPPPOSTG_DBNAME}}" -user="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_USERNAME }}" -password="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_PASSWORD }}" repair
-          docker run --rm --volume ${{ github.workspace }}/migrations:/flyway/sql:ro redgate/flyway -url="jdbc:postgresql://${{env.CDKTODOAPPSTACKTODOAPPPOSTG_HOST}}:5432/${{env.CDKTODOAPPSTACKTODOAPPPOSTG_DBNAME}}" -user="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_USERNAME }}" -password="${{ env.CDKTODOAPPSTACKTODOAPPPOSTG_PASSWORD }}" migrate

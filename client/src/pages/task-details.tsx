@@ -2,18 +2,18 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { ArrowLeft, Edit3, Save, X, Clock, User, Calendar, Flag, Trash2 } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Edit3, Flag, Save, Trash2, User, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { PureAvatar } from "../components/pure-avatar"
 import { PureBadge } from "../components/pure-badge"
 import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
+import { CardContent, PureCard } from "../components/pure-card"
 import { PureTextarea } from "../components/pure-form"
 import { PureInput } from "../components/pure-input"
 import { PureAlertModal } from "../components/pure-modal"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { Link } from "react-router-dom"
 
 // Types
 type TaskStatus = "open" | "in-progress" | "completed"

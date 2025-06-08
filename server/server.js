@@ -8,12 +8,14 @@ import { userRoleRouter } from './routers/userRoleRouter.js';
 import { teamRouter } from './routers/teamRouter.js';
 import { teamMemberRouter } from './routers/teamMemberRouter.js';
 import { todoRouter } from './routers/todoRouter.js';
+import knex from 'knex';
+
 
 const app = express();
 app.use(express.json());
 
 // routes
-app.get('/',(req, res) => {
+app.get('/', (req, res) => {
   res.status(200).send('OK')
 })
 

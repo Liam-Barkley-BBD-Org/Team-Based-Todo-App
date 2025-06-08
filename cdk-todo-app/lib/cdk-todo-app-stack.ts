@@ -1,22 +1,17 @@
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as rds from 'aws-cdk-lib/aws-rds';
-import { execSync } from 'child_process';
-import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
+import { CertificateValidation, KeyAlgorithm } from 'aws-cdk-lib/aws-certificatemanager';
 import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { AwsCliLayer } from 'aws-cdk-lib/lambda-layer-awscli';
-import { CertificateValidation, KeyAlgorithm } from 'aws-cdk-lib/aws-certificatemanager';
-import { ARecord, CnameRecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { CloudFrontTarget, Route53RecordTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { S3DeployAction } from 'aws-cdk-lib/aws-codepipeline-actions';
-import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_patterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as rds from 'aws-cdk-lib/aws-rds';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { execSync } from 'child_process';
+import { Construct } from 'constructs';
 
 export class CdkTodoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -147,8 +142,8 @@ export class CdkTodoAppStack extends cdk.Stack {
 
     fargateService.taskDefinition.taskRole.addToPrincipalPolicy(
       new cdk.aws_iam.PolicyStatement({
-        actions:['secretsmanager:GetSecretValue'],
-        resources:['*']
+        actions: ['secretsmanager:GetSecretValue'],
+        resources: ['*']
       })
     )
 
@@ -158,9 +153,9 @@ export class CdkTodoAppStack extends cdk.Stack {
 
     });
 
-    new cdk.CfnOutput(this, 'BackendURL', {
-      value: `https://api.acceleratedteamproductivity.shop`,
-    });
+    // new cdk.CfnOutput(this, 'BackendURL', {
+    //   value: `https://api.acceleratedteamproductivity.shop`,
+    // });
   }
 }
 

@@ -2,12 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
 import { History, Trash2 } from "lucide-react"
+import { useState } from "react"
 import { PureBadge } from "./pure-badge"
 import { PureButton } from "./pure-button"
 import { PureTextarea } from "./pure-form"
-import { PureModal, PureAlertModal } from "./pure-modal"
+import { PureAlertModal, PureModal } from "./pure-modal"
 import { PureSelect } from "./pure-select"
 import { PureSeparator } from "./pure-separator"
 
@@ -76,7 +76,6 @@ export function TaskDetailModal({ task, isOpen, onClose, onSave, onDelete, teams
       return { ...prev, [field]: value }
     })
   }
-
 
   const getStatusBadge = (status: TaskStatus) => {
     const variants = {
@@ -158,13 +157,13 @@ export function TaskDetailModal({ task, isOpen, onClose, onSave, onDelete, teams
         isOpen={isOpen}
         onClose={onClose}
         title={editedTask.title}
-        // description=
-        // description={
-        //   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        //     <Clock size={12} />
-        //     Created on {formatDate(editedTask.createdAt)} by {editedTask.createdBy.name}
-        //   </div>
-        // }
+      // description=
+      // description={
+      //   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      //     <Clock size={12} />
+      //     Created on {formatDate(editedTask.createdAt)} by {editedTask.createdBy.name}
+      //   </div>
+      // }
       >
         <div style={formGroupStyle}>
           <label style={labelStyle} htmlFor="description">
