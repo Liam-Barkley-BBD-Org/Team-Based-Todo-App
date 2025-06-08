@@ -37,7 +37,9 @@ jobs:
           node-version: 22
 
       - name: Install dependecies
-        run: npm i
+        run: |
+          npm i
+          ls
 
       - name: Bootstrap cdk
         run: npx cdk bootstrap
