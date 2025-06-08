@@ -13,8 +13,8 @@ const getTodoByUserId = Joi.object({
 });
 
 const getTodoReportSchema = Joi.object({
-  period: Joi.string().valid('weeks', 'months', 'years').default('months'),
-  n: Joi.number().integer().min(1).default(3),
+  period: Joi.string().valid('weeks', 'months', 'years').required(),
+  n: Joi.number().integer().min(1).default(3).required(),
 });
 
 export { 

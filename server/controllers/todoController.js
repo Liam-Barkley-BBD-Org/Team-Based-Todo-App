@@ -186,6 +186,7 @@ const patchTodo = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, description, is_open, assigned_user_id } = req.body;
+        const todo = await getTodoById(id);
         let status, response;
 
         const fields = {};
@@ -197,10 +198,10 @@ const patchTodo = async (req, res, next) => {
         if (Object.keys(fields).length === 0) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'No fields provided' };
-        } else if (!(await getTodoById(id))) {
+        } else if (!todo) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
-        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: team_id, user_id: assigned_user_id }))) {
+        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: todo.team_id, user_id: assigned_user_id }))) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'Cannot assign to this user' }; 
         } else {
