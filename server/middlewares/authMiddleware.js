@@ -1,23 +1,71 @@
 import { verifyJwt } from "../utils/jwtUtil.js";
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
-export function requireJwtAuth(req, res, next) {
+export function requireAccessToken(req, res, next) {
   const auth = req.headers.authorization;
+  let error = null;
   if (!auth || !auth.startsWith("Bearer ")) {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: "Missing or invalid token" });
+    error = { status: HTTP_STATUS.UNAUTHORIZED, message: "Missing or invalid token" };
+  } else {
+    const token = auth.split(" ")[1];
+    const payload = verifyJwt(token);
+    if (!payload) {
+      error = { status: HTTP_STATUS.UNAUTHORIZED, message: "Invalid or expired token" };
+    } else {
+      req.user = {
+        id: payload.sub,
+        roles: payload.roles,
+        scope: payload.scope,
+      };
+    }
   }
-  const token = auth.split(" ")[1];
-  const payload = verifyJwt(token);
-  if (!payload || !payload.username) {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: "Invalid or expired token" });
+  if (error) {
+    res.status(error.status).json({ message: error.message });
+  } else {
+    next();
   }
-  req.user = payload;
-  next();
 }
 
-export function require2FA(req, res, next) {
-  if (!req.user || !req.user.twoFA) {
-    return res.status(HTTP_STATUS.FORBIDDEN).json({ message: "2FA required" });
+export function requireFullAuth(req, res, next) {
+  let error = null;
+  if (!req.user) {
+    error = { status: HTTP_STATUS.UNAUTHORIZED, message: "Authentication required" };
+  } else if (req.user.scope !== "full_access") {
+    error = { status: HTTP_STATUS.FORBIDDEN, message: "2FA required" };
   }
-  next();
+  if (error) {
+    res.status(error.status).json({ message: error.message });
+  } else {
+    next();
+  }
+}
+
+export function requireRole(role) {
+  return (req, res, next) => {
+    let error = null;
+    if (!req.user) {
+      error = { status: HTTP_STATUS.UNAUTHORIZED, message: "Authentication required" };
+    } else if (!req.user.roles || !req.user.roles.includes(role)) {
+      error = { status: HTTP_STATUS.FORBIDDEN, message: "Forbidden: insufficient role" };
+    }
+    if (error) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      next();
+    }
+  };
+}
+
+export function requireAuthSetupScope(req, res, next) {
+  let error = null;
+  if (!req.user) {
+    error = { status: HTTP_STATUS.UNAUTHORIZED, message: "Authentication required" };
+  } else if (req.user.scope !== "auth_setup") {
+    error = { status: HTTP_STATUS.FORBIDDEN, message: "2FA setup or verification required" };
+  }
+  if (error) {
+    res.status(error.status).json({ message: error.message });
+  } else {
+    next();
+  }
 }
