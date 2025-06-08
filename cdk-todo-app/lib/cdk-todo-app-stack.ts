@@ -1,6 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
+import { aws_secretsmanager as secretsmanager } from 'aws-cdk-lib';
 import { CertificateValidation, KeyAlgorithm } from 'aws-cdk-lib/aws-certificatemanager';
 import { Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { aws_cloudfront as cloudfront } from 'aws-cdk-lib';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -16,6 +18,29 @@ import { Construct } from 'constructs';
 export class CdkTodoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    //SECRETS
+    const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', { secretName: 'CdkTodoAppStacktodoapppostg' })
+    const aesEncryptionSecrets = new secretsmanager.Secret(this, 'aesEncryptionSecrets', {
+      secretName: 'aes-256-cbc-key',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ algorithm: 'aes-256-cbc' }),
+        generateStringKey: 'key',
+        passwordLength: 44, // Base64-encoded 32 bytes => ceil((32 / 3) * 4) = 44
+        excludePunctuation: true,
+        includeSpace: false
+      }
+    })
+    const jwtSecret = new secretsmanager.Secret(this, 'JwtSecret', {
+      secretName: 'jwt-signing-secret',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({}),
+        generateStringKey: 'jwtSecret',
+        passwordLength: 64,
+        excludePunctuation: true,
+        includeSpace: false
+      },
+    });
 
     //FRONT-END STUFF
     execSync('npm i', { cwd: './../client', stdio: 'inherit' });
@@ -46,15 +71,31 @@ export class CdkTodoAppStack extends cdk.Stack {
       validation: CertificateValidation.fromDns(hostedZone),
     })
 
+    const cloudFrontFunctionFile: cloudfront.FileCodeOptions = {
+      filePath: './src/cloudFrontProcessing.js'
+    }
+
+    const cloudFrontFunctions = new cloudfront.Function(this, 'BlockByHostFunction', {
+      functionName: 'cloudFrontFunctionProcessing',
+      code: cloudfront.FunctionCode.fromFile(cloudFrontFunctionFile)
+    })
+
     const frontEndDistribution = new Distribution(this, 'bucket-distribution', {
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(toDoAppBucket),
         viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
+        functionAssociations: [
+          {
+            function: cloudFrontFunctions,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
+          }
+        ]
       },
       defaultRootObject: 'index.html',
       certificate: certificate,
       domainNames: ['app.acceleratedteamproductivity.shop'],
       enableIpv6: false,
+
     })
 
     const frontEndRecord = new ARecord(this, 'front-end-aroute', {
@@ -63,13 +104,7 @@ export class CdkTodoAppStack extends cdk.Stack {
       recordName: 'app'
     })
 
-    // const redirectToApp = new CnameRecord(this, 'front-end-approute', {
-    //   domainName: 'app.acceleratedteamproductivity.shop',
-    //   zone: hostedZone,
-    // })
-
     // //SECURITY STUFF
-
     const rdsVpc = new ec2.Vpc(this, 'RdsVpc', {
       maxAzs: 2, // Recommended for RDS HA
     });
@@ -88,8 +123,6 @@ export class CdkTodoAppStack extends cdk.Stack {
       ec2.Port.allTraffic(),
       'Make the DB Publically accesible'
     )
-
-    const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', { secretName: 'CdkTodoAppStacktodoapppostg' })
 
     const dbInstace = new rds.DatabaseInstance(this, 'to-do-app-postgres-instance', {
       engine: rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_17_5 }),
@@ -152,10 +185,6 @@ export class CdkTodoAppStack extends cdk.Stack {
       healthyHttpCodes: '200-399',
 
     });
-
-    // new cdk.CfnOutput(this, 'BackendURL', {
-    //   value: `https://api.acceleratedteamproductivity.shop`,
-    // });
   }
 }
 
