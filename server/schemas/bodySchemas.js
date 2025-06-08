@@ -1,4 +1,8 @@
-import Joi from 'joi';
+import Joi from "joi";
+
+const twoFaVerifySchema = Joi.object({
+  token: Joi.string().length(6).required(),
+});
 
 const createUserSchema = Joi.object({
   username: Joi.string().max(64).required(),
@@ -36,11 +40,18 @@ const patchTodoSchema = Joi.object({
   assigned_user_id: Joi.number().integer().allow(null),
 }).min(1);
 
-export { 
+const loginSchema = Joi.object({
+  username: Joi.string().min(1).max(64).required(),
+  password: Joi.string().min(1).max(128).required(),
+});
+
+export {
   createUserSchema,
   createUserRoleSchema,
   createTeamSchema,
   createTeamMemberSchema,
   patchTodoSchema,
   createTodoSchema,
+  twoFaVerifySchema,
+  loginSchema,
 };

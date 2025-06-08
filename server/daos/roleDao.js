@@ -9,3 +9,7 @@ export async function getAllRoles() {
 export async function getRoleById(id) {
   return await db(TABLE_NAME).where({ id }).first();
 }
+
+export async function getRoleByName(name) {
+  return await db(TABLE_NAME).where({ name }).first();
+}
