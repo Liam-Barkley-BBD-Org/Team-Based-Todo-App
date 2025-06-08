@@ -1,7 +1,4 @@
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from "@aws-sdk/client-secrets-manager";
+import { DBSecret } from "./utils/awsSecretManager.js"
 
 //HOMIES PUT YOUR CUSTOM DB CONNECTIONS HERE
 let knexEnv = {
@@ -16,32 +13,14 @@ let knexEnv = {
 }
 
 if (process.env.NODE_ENV == 'production') {
-  let response;
-  const secret_name = "CdkTodoAppStacktodoapppostg";
-  const client = new SecretsManagerClient({
-    region: "us-east-1",
-  });
-
-  try {
-    response = await client.send(
-      new GetSecretValueCommand({
-        SecretId: secret_name,
-        VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
-      })
-    );
-  } catch (error) {
-    console.error('Failed getting secrets')
-    throw error;
-  }
-  const DBsecret = JSON.parse(response.SecretString)
   knexEnv = {
     client: 'pg',
     connection: {
-      host: DBsecret.host,
-      port: Number(DBsecret.port),
-      database: DBsecret.dbname,
-      user: DBsecret.username,
-      password: DBsecret.password,
+      host: DBSecret.host,
+      port: Number(DBSecret.port),
+      database: DBSecret.dbname,
+      user: DBSecret.username,
+      password: DBSecret.password,
       ssl: {
         require: true,
         rejectUnauthorized: false

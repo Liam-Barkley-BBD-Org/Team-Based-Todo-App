@@ -1,4 +1,6 @@
-import express, { Router } from 'express';
+import express from 'express';
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import errorHandler from './middlewares/errorHandlerMiddleware.js';
 
 import { HTTP_STATUS } from "./utils/httpStatusUtil.js";
@@ -8,7 +10,7 @@ import { userRoleRouter } from './routers/userRoleRouter.js';
 import { teamRouter } from './routers/teamRouter.js';
 import { teamMemberRouter } from './routers/teamMemberRouter.js';
 import { todoRouter } from './routers/todoRouter.js';
-import knex from 'knex';
+import { authRouter } from "./routers/authRouter.js";
 
 
 const app = express();

@@ -1,10 +1,11 @@
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { AESKeySecret } from "./awsSecretManager.js";
 dotenv.config();
 
-const algorithm = process.env.ENCRYPTION_ALGORITHM || "aes-256-cbc";
-const key = Buffer.from(process.env.ENCRYPTION_KEY, "utf8");
-const iv = Buffer.from(process.env.ENCRYPTION_IV, "utf8");
+const algorithm = AESKeySecret.algorithm || "aes-256-cbc";
+const key = Buffer.from(AESKeySecret.key, "base64");
+const iv = Buffer.from("1111", "base64");
 
 export function encrypt(text) {
   const cipher = crypto.createCipheriv(algorithm, key, iv);

@@ -2,11 +2,10 @@ name: CDK-CICD
 
 on:
   push:
-    branches: [cicd-setup]
-    # paths: ["migrations/**", "cdk-todo-app/**"]
+    branches: [pre-dev]
   pull_request:
-    branches: [cicd-setup]
-    # paths: ["migrations/**", "cdk-todo-app/**"]
+    branches: [pre-dev]
+
 env:
   AWS_REGION: us-east-1
 
