@@ -1,7 +1,4 @@
-import express from 'express';
-import cors from "cors";
-import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
+import express, { Router } from 'express';
 import errorHandler from './middlewares/errorHandlerMiddleware.js';
 
 import { HTTP_STATUS } from "./utils/httpStatusUtil.js";
@@ -11,9 +8,8 @@ import { userRoleRouter } from './routers/userRoleRouter.js';
 import { teamRouter } from './routers/teamRouter.js';
 import { teamMemberRouter } from './routers/teamMemberRouter.js';
 import { todoRouter } from './routers/todoRouter.js';
-import { authRouter } from "./routers/authRouter.js";
+import knex from 'knex';
 
-dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -28,6 +24,10 @@ app.use(
 );
 
 // routes
+app.get('/', (req, res) => {
+  res.status(200).send('OK')
+})
+
 app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/teams', teamRouter);

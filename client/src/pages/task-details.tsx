@@ -2,18 +2,18 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { ArrowLeft, Edit3, Save, X, Clock, User, Calendar, Flag, Trash2 } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Edit3, Flag, Save, Trash2, User, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { PureAvatar } from "../components/pure-avatar"
 import { PureBadge } from "../components/pure-badge"
 import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
+import { CardContent, PureCard } from "../components/pure-card"
 import { PureTextarea } from "../components/pure-form"
 import { PureInput } from "../components/pure-input"
 import { PureAlertModal } from "../components/pure-modal"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { Link } from "react-router-dom"
 
 // Types
 type TaskStatus = "open" | "in-progress" | "completed"
@@ -63,19 +63,7 @@ const mockTask: Task = {
   },
 }
 
-const teams = [
-  { value: "alpha", label: "Team Alpha" },
-  { value: "beta", label: "Team Beta" },
-  { value: "gamma", label: "Team Gamma" },
-]
 
-const users = [
-  { value: "", label: "Unassigned" },
-  { value: "1", label: "Alice Johnson" },
-  { value: "2", label: "Bob Smith" },
-  { value: "3", label: "Charlie Brown" },
-  { value: "4", label: "Diana Prince" },
-]
 
 const priorities = [
   { value: "low", label: "Low" },
@@ -295,10 +283,6 @@ export default function TaskDetailPage() {
     gap: "16px",
   }
 
-  const buttonGroupStyle: React.CSSProperties = {
-    display: "flex",
-    gap: "8px",
-  }
 
   const toastStyle: React.CSSProperties = {
     position: "fixed",
