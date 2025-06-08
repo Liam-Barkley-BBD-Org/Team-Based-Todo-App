@@ -9,7 +9,7 @@ const createUserSchema = Joi.object({
   password: Joi.string().max(72).required(), // bcrypt only uses first 72 bytes
 });
 
-const createUserRoleSchema = Joi.object({
+const userRoleSchema = Joi.object({
   user_id: Joi.number().integer().required(),
   role_id: Joi.number().integer().required(),
 });
@@ -19,7 +19,7 @@ const createTeamSchema = Joi.object({
   owner_user_id: Joi.number().integer().required(),
 });
 
-const createTeamMemberSchema = Joi.object({
+const teamMemberSchema = Joi.object({
   team_id: Joi.number().integer().required(),
   user_id: Joi.number().integer().required(),
 });
@@ -47,9 +47,9 @@ const loginSchema = Joi.object({
 
 export {
   createUserSchema,
-  createUserRoleSchema,
+  userRoleSchema,
   createTeamSchema,
-  createTeamMemberSchema,
+  teamMemberSchema,
   patchTodoSchema,
   createTodoSchema,
   twoFaVerifySchema,

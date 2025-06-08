@@ -2,10 +2,10 @@ import { getUserById } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 import { getTeamById } from '../daos/teamDao.js';
 
-import { 
+import {
     getTeamMemberById,
-    getMembersByTeamId, 
-    getTeamsByUserId, 
+    getMembersByTeamId,
+    getTeamsByUserId,
     createTeamMember,
     removeTeamMember,
     getTeamMemberByTeamIdAndUserId,
@@ -26,7 +26,7 @@ const getUserTeams = async (req, res, next) => {
                 userTeams.map(async (membership) => {
                     const team = await getTeamById(membership.team_id);
                     return {
-                        ...membership,
+                        id: membership.id,
                         user,
                         team,
                     };
@@ -60,7 +60,7 @@ const getTeamMembers = async (req, res, next) => {
                 teamMembers.map(async (member) => {
                     const user = await getUserById(member.user_id);
                     return {
-                        ...member,
+                        id: member.id,
                         user,
                         team
                     };
@@ -105,21 +105,21 @@ const postTeamMember = async (req, res, next) => {
 
 const deleteTeamMember = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const teamMember = await getTeamMemberById(id);
+        const { user_id, team_id } = req.body;
+        const teamMember = await getTeamMemberByTeamIdAndUserId({team_id, user_id});
         let status, response;
 
         if (!teamMember) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team member not found' };
         } else {
-            const team = await getTeamById(teamMember.team_id);
+            const team = await getTeamById(team_id);
 
             if (teamMember.user_id == team.owner_user_id) {
                 status = HTTP_STATUS.BAD_REQUEST;
                 response = { error: 'Cannot remove team member' };
             } else {
-                await removeTeamMember({ id });
+                await removeTeamMember({ user_id, team_id });
                 status = HTTP_STATUS.NO_CONTENT;
                 response = {};
             }

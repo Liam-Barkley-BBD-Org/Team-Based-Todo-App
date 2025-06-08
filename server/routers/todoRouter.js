@@ -1,12 +1,13 @@
 import express from 'express';
 import validateMiddleware, { PROPERTIES } from '../middlewares/validateMiddleware.js';
-import { getByIdSchema, getTodoByUserId } from '../schemas/paramSchemas.js';
+import { getByIdSchema, getTodoByUserId, getTodoReportSchema } from '../schemas/paramSchemas.js';
 import { patchTodoSchema, createTodoSchema } from '../schemas/bodySchemas.js';
 
 import { 
   getTodo,
   getTeamTodos,
   getUserTodos,
+  getTodoReport,
   patchTodo,
   postTodo,
   deleteTodo,
@@ -18,6 +19,7 @@ export const todoRouter = express.Router();
 todoRouter.get('/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), getTodo);
 todoRouter.get('/team/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), getTeamTodos);
 todoRouter.get('/user/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), validateMiddleware(getTodoByUserId, PROPERTIES.QUERY), getUserTodos);
+todoRouter.get('/report/team/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), validateMiddleware(getTodoReportSchema, PROPERTIES.QUERY), getTodoReport);
 
 todoRouter.post('/', validateMiddleware(createTodoSchema, PROPERTIES.BODY), postTodo);
 todoRouter.patch('/:id', validateMiddleware(getByIdSchema, PROPERTIES.PARAMS), validateMiddleware(patchTodoSchema, PROPERTIES.BODY), patchTodo);
