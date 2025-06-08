@@ -57,6 +57,11 @@ export async function revokeRefreshToken(fullToken) {
   }
 }
 
+export async function rotateRefreshToken(oldToken, { userId, expires }) {
+  await revokeRefreshToken(oldToken);
+  return createRefreshToken({ userId, expires });
+}
+
 export async function isRefreshTokenValid(token) {
   let valid = false;
   const refreshTokenRecord = await getRefreshToken(token);
