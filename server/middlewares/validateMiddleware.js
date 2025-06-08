@@ -3,6 +3,7 @@ import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 export const PROPERTIES = {
     BODY: 'body',
     PARAMS: 'params',
+    QUERY: 'query',
   };
 
 export default (schema, property) => (req, res, next) => {
