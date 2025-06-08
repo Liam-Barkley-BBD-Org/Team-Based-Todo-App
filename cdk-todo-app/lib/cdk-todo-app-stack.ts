@@ -24,7 +24,7 @@ export class CdkTodoAppStack extends cdk.Stack {
     const aesEncryptionSecrets = new secretsmanager.Secret(this, 'aesEncryptionSecrets', {
       secretName: 'aes-256-cbc-key',
       generateSecretString: {
-        secretStringTemplate: JSON.stringify({ algorithm: 'aes-256-cbc' }),
+        secretStringTemplate: JSON.stringify({ algorithm: 'aes-256-gcm' }),
         generateStringKey: 'key',
         passwordLength: 44, // Base64-encoded 32 bytes => ceil((32 / 3) * 4) = 44
         excludePunctuation: true,
@@ -147,44 +147,44 @@ export class CdkTodoAppStack extends cdk.Stack {
     });
 
     //BACK-END STUFF
-    const cluster = new ecs.Cluster(this, 'FargateCluster', {
-      vpc: rdsVpc
-    });
+    // const cluster = new ecs.Cluster(this, 'FargateCluster', {
+    //   vpc: rdsVpc
+    // });
 
-    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'FargateService', {
-      cluster,
-      cpu: 256,
-      memoryLimitMiB: 512,
-      desiredCount: 1,
-      publicLoadBalancer: true,
-      certificate,
-      domainName: 'api.acceleratedteamproductivity.shop',
-      domainZone: hostedZone,
-      listenerPort: 443,
-      protocol: cdk.aws_elasticloadbalancingv2.ApplicationProtocol.HTTPS,
-      redirectHTTP: true,
-      taskImageOptions: {
-        image: ecs.ContainerImage.fromAsset('./../server'), // path to your Dockerfile
-        containerPort: 3000, // your Express app port
-        environment: {
-          NODE_ENV: 'production',
-          API_PORT: '3000'
-        },
-      },
-    });
+    // const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'FargateService', {
+    //   cluster,
+    //   cpu: 256,
+    //   memoryLimitMiB: 512,
+    //   desiredCount: 1,
+    //   publicLoadBalancer: true,
+    //   certificate,
+    //   domainName: 'api.acceleratedteamproductivity.shop',
+    //   domainZone: hostedZone,
+    //   listenerPort: 443,
+    //   protocol: cdk.aws_elasticloadbalancingv2.ApplicationProtocol.HTTPS,
+    //   redirectHTTP: true,
+    //   taskImageOptions: {
+    //     image: ecs.ContainerImage.fromAsset('./../server'), // path to your Dockerfile
+    //     containerPort: 3000, // your Express app port
+    //     environment: {
+    //       NODE_ENV: 'production',
+    //       API_PORT: '3000'
+    //     },
+    //   },
+    // });
 
-    fargateService.taskDefinition.taskRole.addToPrincipalPolicy(
-      new cdk.aws_iam.PolicyStatement({
-        actions: ['secretsmanager:GetSecretValue'],
-        resources: ['*']
-      })
-    )
+    // fargateService.taskDefinition.taskRole.addToPrincipalPolicy(
+    //   new cdk.aws_iam.PolicyStatement({
+    //     actions: ['secretsmanager:GetSecretValue'],
+    //     resources: ['*']
+    //   })
+    // )
 
-    fargateService.targetGroup.configureHealthCheck({
-      path: '/',
-      healthyHttpCodes: '200-399',
+    // fargateService.targetGroup.configureHealthCheck({
+    //   path: '/',
+    //   healthyHttpCodes: '200-399',
 
-    });
+    // });
   }
 }
 

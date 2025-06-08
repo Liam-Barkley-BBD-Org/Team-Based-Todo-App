@@ -39,7 +39,6 @@ jobs:
       - name: Install dependecies
         run: |
           npm i
-          ls
 
       - name: Bootstrap cdk
         run: npx cdk bootstrap

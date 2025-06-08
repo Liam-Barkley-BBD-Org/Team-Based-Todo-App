@@ -3,20 +3,34 @@ import dotenv from "dotenv";
 import { AESKeySecret } from "./awsSecretManager.js";
 dotenv.config();
 
-const algorithm = AESKeySecret.algorithm || "aes-256-cbc";
-const key = Buffer.from(AESKeySecret.key, "base64");
-const iv = Buffer.from("1111", "base64");
+const algorithm = "aes-256-gcm";
+const key = Buffer.from(AESKeySecret.key, "base64").slice(0, 32);
 
 export function encrypt(text) {
+  const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return encrypted;
+
+  const encrypted = Buffer.concat([
+    cipher.update(text, "utf8"),
+    cipher.final(),
+  ]);
+
+  const authTag = cipher.getAuthTag();
+  return Buffer.concat([iv, authTag, encrypted]).toString("base64");
 }
 
-export function decrypt(encryptedText) {
+export function decrypt(encryptedBase64) {
+  const data = Buffer.from(encryptedBase64, "base64");
+  const iv = data.slice(0, 12);
+  const authTag = data.slice(12, 28);
+  const encryptedText = data.slice(28);
+
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
-  let decrypted = decipher.update(encryptedText, "hex", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
+  decipher.setAuthTag(authTag);
+
+  const decrypted = Buffer.concat([
+    decipher.update(encryptedText),
+    decipher.final(),
+  ]);
+  return decrypted.toString("utf8");
 }
