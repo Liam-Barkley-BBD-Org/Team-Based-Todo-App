@@ -5,7 +5,7 @@ const getByIdSchema = Joi.object({
 });
 
 const getByNameSchema = Joi.object({
-  name: Joi.string().max(64).required()
+  name: Joi.string().max(32).required()
 });
 
 const getTodoByUserId = Joi.object({

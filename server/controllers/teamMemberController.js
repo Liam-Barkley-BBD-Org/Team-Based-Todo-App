@@ -43,7 +43,6 @@ const getUserTeams = async (req, res, next) => {
     }
 };
 
-
 const getTeamMembers = async (req, res, next) => {
     try {
         const { name } = req.params;
