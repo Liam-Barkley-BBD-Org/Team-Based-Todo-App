@@ -16,12 +16,12 @@ const userRoleSchema = Joi.object({
 
 const createTeamSchema = Joi.object({
   name: Joi.string().max(32).required(),
-  owner_user_id: Joi.number().integer().required(),
+  owner_username: Joi.string().min(1).max(32).required(),
 });
 
 const teamMemberSchema = Joi.object({
-  team_id: Joi.number().integer().required(),
-  user_id: Joi.number().integer().required(),
+  username: Joi.string().min(1).max(32).required(),
+  teamname: Joi.string().min(1).max(32).required(),
 });
 
 const createTodoSchema = Joi.object({

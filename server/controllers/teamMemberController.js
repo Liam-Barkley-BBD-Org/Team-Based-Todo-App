@@ -78,20 +78,19 @@ const getTeamMembers = async (req, res, next) => {
 
 const postTeamMember = async (req, res, next) => {
     try {
-        const { team_id, user_id } = req.body;
+        const { username, teamname } = req.body;
+        const user = await getUserByUsername(username);
+        const team = await getTeamByName(teamname);
         let status, response;
 
-        if (!(await getUserById(user_id))) {
+        if (!user || !team) {
             status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'User not found' };
-        } else if (!(await getTeamById(team_id))) {
-            status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'Team not found' };
-        } else if (await getTeamMemberByTeamIdAndUserId({ team_id, user_id })) {
+            response = { error: 'User or team not found' };
+        } else if (await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: user.id })) {
             status = HTTP_STATUS.CONFLICT;
             response = { error: 'Could not add user to team' }
         } else {
-            const team = await createTeamMember({ team_id, user_id });
+            const team = await createTeamMember({ team_id: team.id, user_id: user.id });
             status = HTTP_STATUS.CREATED;
             response = team;
         }
@@ -104,21 +103,25 @@ const postTeamMember = async (req, res, next) => {
 
 const deleteTeamMember = async (req, res, next) => {
     try {
-        const { user_id, team_id } = req.body;
-        const teamMember = await getTeamMemberByTeamIdAndUserId({team_id, user_id});
+        const { username, teamname } = req.body;
+        const user = await getUserByUsername(username);
+        const team = await getTeamByName(teamname);
         let status, response;
 
-        if (!teamMember) {
+        if (!user || !team) {
             status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'Team member not found' };
+            response = { error: 'User or team not found' };
         } else {
-            const team = await getTeamById(team_id);
+            const teamMember = await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: user.id });
 
-            if (teamMember.user_id == team.owner_user_id) {
+            if (!teamMember) {
+                status = HTTP_STATUS.NOT_FOUND;
+                response = { error: 'Team member not found' };
+            } else if (teamMember.user_id == team.owner_user_id) {
                 status = HTTP_STATUS.BAD_REQUEST;
                 response = { error: 'Cannot remove team member' };
             } else {
-                await removeTeamMember({ user_id, team_id });
+                await removeTeamMember({ user_id: user.id, team_id: team.id });
                 status = HTTP_STATUS.NO_CONTENT;
                 response = {};
             }
