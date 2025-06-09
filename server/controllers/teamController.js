@@ -1,4 +1,4 @@
-import { getUserById } from '../daos/userDao.js';
+import { getUserById, getUserByUsername } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
 import { getTeamById, getTeamByName, getTeamsByOwnerId, createTeam } from '../daos/teamDao.js';
@@ -26,14 +26,15 @@ const getTeam = async (req, res, next) => {
 
 const getOwnedTeams = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { name } = req.params;
         let status, response;
 
-        if (!(await getUserById(id))) {
+        const user = await getUserByUsername(name);
+        if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User does not exist' };
         } else {
-            const userTeams = await getTeamsByOwnerId(id);
+            const userTeams = await getTeamsByOwnerId(user.id);
             status = HTTP_STATUS.OK;
             response = userTeams || []; 
         }

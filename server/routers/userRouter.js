@@ -7,5 +7,5 @@ import { postUser, getUser } from '../controllers/userController.js'
 export const userRouter = express.Router();
 
 /* User routes */
-userRouter.get('/:username', validateMiddleware(getByNameSchema, PROPERTIES.PARAMS) , getUser);
+userRouter.get('/:name', validateMiddleware(getByNameSchema, PROPERTIES.PARAMS) , getUser);
 userRouter.post('/', validateMiddleware(createUserSchema, PROPERTIES.BODY), postUser);

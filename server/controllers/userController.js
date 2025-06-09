@@ -4,8 +4,8 @@ import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
 const getUser = async (req, res, next) => {
   try {
-    const { username } = req.params;
-    const user = await getUserByUsername(username);
+    const { name } = req.params;
+    const user = await getUserByUsername(name);
     let status, response;
 
     if (user) {

@@ -1,24 +1,24 @@
-import { getUserById } from '../daos/userDao.js';
+import { getUserById, getUserByUsername } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
 
 import { 
     getUserRoleByUserIdAndRoleId, 
     getUserRolesByUserId, 
-    createUserRole,
-    getUserRoleById, 
+    createUserRole, 
     removeUserRole,
 } from '../daos/userRoleDao.js';
 
 const getUserRoles = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { name } = req.params;
         let status, response;
 
-        if (!(await getUserById(id))) {
+        const user = await getUserByUsername(name);
+        if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
         } else {
-            const userRoles = await getUserRolesByUserId(id);
+            const userRoles = await getUserRolesByUserId(user.id);
             status = HTTP_STATUS.OK;
             response = userRoles || []; 
         }
