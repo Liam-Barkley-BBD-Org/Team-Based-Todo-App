@@ -1,6 +1,6 @@
-import { getUserById } from '../daos/userDao.js';
+import { getUserById, getUserByUsername } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
-import { getTeamById } from '../daos/teamDao.js';
+import { getTeamById, getTeamByName } from '../daos/teamDao.js';
 
 import {
     getTeamMemberById,
@@ -13,15 +13,15 @@ import {
 
 const getUserTeams = async (req, res, next) => {
     try {
-        const { id: user_id } = req.params;
+        const { name: username } = req.params;
         let status, response;
 
-        const user = await getUserById(user_id);
+        const user = await getUserByUsername(username);
         if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
         } else {
-            const userTeams = await getTeamsByUserId(user_id);
+            const userTeams = await getTeamsByUserId(user.id);
             const mappedUserTeams = await Promise.all(
                 userTeams.map(async (membership) => {
                     const team = await getTeamById(membership.team_id);
@@ -46,15 +46,15 @@ const getUserTeams = async (req, res, next) => {
 
 const getTeamMembers = async (req, res, next) => {
     try {
-        const { id: team_id } = req.params;
+        const { name } = req.params;
         let status, response;
 
-        const team = await getTeamById(team_id);
+        const team = await getTeamByName(name);
         if (!team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
         } else {
-            const teamMembers = await getMembersByTeamId(team_id);
+            const teamMembers = await getMembersByTeamId(team.id);
 
             const mappedTeamMembers = await Promise.all(
                 teamMembers.map(async (member) => {

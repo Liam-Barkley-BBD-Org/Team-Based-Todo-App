@@ -4,8 +4,8 @@ const getByIdSchema = Joi.object({
   id: Joi.number().integer().positive().required(),
 });
 
-const getByStringSchema = Joi.object({
-  username: Joi.string().max(64).required()
+const getByNameSchema = Joi.object({
+  name: Joi.string().max(64).required()
 });
 
 const getTodoByUserId = Joi.object({
@@ -19,7 +19,7 @@ const getTodoReportSchema = Joi.object({
 
 export { 
   getByIdSchema,
-  getByStringSchema,
+  getByNameSchema,
   getTodoByUserId,
   getTodoReportSchema,
 };
