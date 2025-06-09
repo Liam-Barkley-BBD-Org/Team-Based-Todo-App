@@ -37,7 +37,7 @@ const getTodo = async (req, res, next) => {
                 ...todo,
                 team,
                 created_by_user: creator,
-                assigned_user: assignedUser
+                assigned_to_user: assignedUser
             };
         } else {
             status = HTTP_STATUS.NOT_FOUND;
@@ -68,9 +68,13 @@ const getTeamTodos = async (req, res, next) => {
                         ? await getUserById(todo.assigned_user_id)
                         : null;
 
+                    const creator = await getUserById(todo.created_by_user_id);
+
                     return {
                         ...todo,
-                        assigned_user: assignedUser
+                        team,
+                        created_by_user: creator,
+                        assigned_to_user: assignedUser
                     };
                 })
             );
@@ -110,16 +114,18 @@ const getUserTodos = async (req, res, next) => {
 
             const mappedTodos = await Promise.all(
                 todos.map(async (todo) => {
-                    const team = await getTeamById(todo.team_id);
-
                     const assignedUser = todo.assigned_user_id
                         ? await getUserById(todo.assigned_user_id)
                         : null;
 
+                    const creator = await getUserById(todo.created_by_user_id);
+                    const team = await getTeamById(todo.team_id);
+
                     return {
                         ...todo,
                         team,
-                        assigned_user: assignedUser
+                        created_by_user: creator,
+                        assigned_to_user: assignedUser
                     };
                 })
             );
