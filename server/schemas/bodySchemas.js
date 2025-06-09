@@ -5,13 +5,13 @@ const twoFaVerifySchema = Joi.object({
 });
 
 const createUserSchema = Joi.object({
-  username: Joi.string().max(64).required(),
+  username: Joi.string().max(32).required(),
   password: Joi.string().max(72).required(), // bcrypt only uses first 72 bytes
 });
 
 const userRoleSchema = Joi.object({
-  user_id: Joi.number().integer().required(),
-  role_id: Joi.number().integer().required(),
+  username: Joi.string().min(1).max(32).required(),
+  rolename: Joi.string().min(1).max(32).required(),
 });
 
 const createTeamSchema = Joi.object({
@@ -41,7 +41,7 @@ const patchTodoSchema = Joi.object({
 }).min(1);
 
 const loginSchema = Joi.object({
-  username: Joi.string().min(1).max(64).required(),
+  username: Joi.string().min(1).max(32).required(),
   password: Joi.string().min(1).max(128).required(),
 });
 
