@@ -28,9 +28,9 @@ const createTodoSchema = Joi.object({
   title: Joi.string().min(1).max(64).required(),
   description: Joi.string().min(1).max(256).required(),
   created_at: Joi.date().iso().required(),
-  created_by_user_id: Joi.number().integer().required(),
-  team_id: Joi.number().integer().required(),
-  assigned_user_id: Joi.number().integer().allow(null).required(),
+  created_by_username: Joi.string().min(1).max(32).required(),
+  teamname: Joi.string().min(1).max(32).required(),
+  assigned_to_username: Joi.string().min(1).max(32).required(),
 });
 
 const patchTodoSchema = Joi.object({

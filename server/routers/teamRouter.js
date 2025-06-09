@@ -1,7 +1,7 @@
 import express from 'express';
 import validateMiddleware, { PROPERTIES } from '../middlewares/validateMiddleware.js';
 import { createTeamSchema } from '../schemas/bodySchemas.js';
-import { getByNameSchema } from '../schemas/paramSchemas.js';
+import { getByNameSchema, getByIdSchema } from '../schemas/paramSchemas.js';
 import { getTeam, getOwnedTeams, postTeam } from '../controllers/teamController.js';
 
 export const teamRouter = express.Router();

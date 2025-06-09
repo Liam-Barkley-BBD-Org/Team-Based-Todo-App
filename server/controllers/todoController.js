@@ -196,7 +196,7 @@ const getTodoReport = async (req, res, next) => {
 const patchTodo = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { title, description, is_open, assigned_user_id } = req.body;
+        const { title, description, is_open, assigned_to_username } = req.body;
         const todo = await getTodoById(id);
         let status, response;
 
@@ -204,7 +204,18 @@ const patchTodo = async (req, res, next) => {
         if (title !== undefined) fields.title = title;
         if (description !== undefined) fields.description = description;
         if (is_open !== undefined) fields.is_open = is_open;
-        if (assigned_user_id !== undefined) fields.assigned_user_id = assigned_user_id;
+
+        let assignedToUser = null;
+        let assignedToUserValid = true;
+
+        if (assigned_to_username !== undefined) {
+            assignedToUser = assigned_to_username ? await getUserByUsername(assigned_to_username) : null;
+            if (assigned_to_username && !assignedToUser) {
+                assignedToUserValid = false;
+            } else {
+                fields.assigned_user_id = assignedToUser ? assignedToUser.id : null;
+            }
+        }
 
         if (Object.keys(fields).length === 0) {
             status = HTTP_STATUS.BAD_REQUEST;
@@ -212,7 +223,11 @@ const patchTodo = async (req, res, next) => {
         } else if (!todo) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
-        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: todo.team_id, user_id: assigned_user_id }))) {
+        } else if (!assignedToUserValid) {
+            status = HTTP_STATUS.NOT_FOUND;
+            response = { error: 'User not found' };
+        } else if (
+            assignedToUser && !(await getTeamMemberByTeamIdAndUserId({ team_id: todo.team_id, user_id: assignedToUser.id }))) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'Cannot assign to this user' };
         } else {
@@ -237,24 +252,35 @@ const patchTodo = async (req, res, next) => {
 
 const postTodo = async (req, res, next) => {
     try {
-        const { title, description, created_at, created_by_user_id, team_id, assigned_user_id } = req.body;
+        const { title, description, created_at, created_by_username, teamname, assigned_to_username } = req.body;
+        const createdByUser = await getUserByUsername(created_by_username);
+        const assignedToUser = assigned_to_username ? await getUserByUsername(assigned_to_username) : null;
+        const team = await getTeamByName(teamname);
         let status, response;
 
-        if (!(await getUserById(created_by_user_id))) {
+        if (!createdByUser) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
-        } else if (assigned_user_id && !(await getUserById(assigned_user_id))) {
+        } else if (assigned_to_username && !assignedToUser) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
-        } else if (!(await getTeamById(team_id))) {
+        } else if (!team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
-        } else if (assigned_user_id && !(await getTeamMemberByTeamIdAndUserId({ team_id: team_id, user_id: assigned_user_id }))) {
+        } else if (assignedToUser && !(await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: assignedToUser.id }))) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'Cannot assign to this user' };
         } else {
             const is_open = true;
-            const todo = await createTodo({ title, description, created_at, created_by_user_id, team_id, is_open, assigned_user_id });
+            const todo = await createTodo({
+                title,
+                description,
+                created_at,
+                created_by_user_id: createdByUser.id,
+                team_id: team.id,
+                is_open,
+                assigned_user_id: assignedToUser ? assignedToUser.id : null
+            });
 
             await createTodoSnapshot({
                 todo_id: todo.id,
