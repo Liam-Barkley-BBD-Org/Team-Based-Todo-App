@@ -1,6 +1,6 @@
-import { getUserById } from '../daos/userDao.js';
+import { getUserById, getUserByUsername } from '../daos/userDao.js';
 import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
-import { getTeamById } from '../daos/teamDao.js';
+import { getTeamById, getTeamByName } from '../daos/teamDao.js';
 
 import {
     getTeamMemberById,
@@ -13,15 +13,15 @@ import {
 
 const getUserTeams = async (req, res, next) => {
     try {
-        const { id: user_id } = req.params;
+        const { name: username } = req.params;
         let status, response;
 
-        const user = await getUserById(user_id);
+        const user = await getUserByUsername(username);
         if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
         } else {
-            const userTeams = await getTeamsByUserId(user_id);
+            const userTeams = await getTeamsByUserId(user.id);
             const mappedUserTeams = await Promise.all(
                 userTeams.map(async (membership) => {
                     const team = await getTeamById(membership.team_id);
@@ -43,18 +43,17 @@ const getUserTeams = async (req, res, next) => {
     }
 };
 
-
 const getTeamMembers = async (req, res, next) => {
     try {
-        const { id: team_id } = req.params;
+        const { name } = req.params;
         let status, response;
 
-        const team = await getTeamById(team_id);
+        const team = await getTeamByName(name);
         if (!team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
         } else {
-            const teamMembers = await getMembersByTeamId(team_id);
+            const teamMembers = await getMembersByTeamId(team.id);
 
             const mappedTeamMembers = await Promise.all(
                 teamMembers.map(async (member) => {
@@ -79,20 +78,19 @@ const getTeamMembers = async (req, res, next) => {
 
 const postTeamMember = async (req, res, next) => {
     try {
-        const { team_id, user_id } = req.body;
+        const { username, teamname } = req.body;
+        const user = await getUserByUsername(username);
+        const team = await getTeamByName(teamname);
         let status, response;
 
-        if (!(await getUserById(user_id))) {
+        if (!user || !team) {
             status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'User not found' };
-        } else if (!(await getTeamById(team_id))) {
-            status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'Team not found' };
-        } else if (await getTeamMemberByTeamIdAndUserId({ team_id, user_id })) {
+            response = { error: 'User or team not found' };
+        } else if (await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: user.id })) {
             status = HTTP_STATUS.CONFLICT;
             response = { error: 'Could not add user to team' }
         } else {
-            const team = await createTeamMember({ team_id, user_id });
+            const team = await createTeamMember({ team_id: team.id, user_id: user.id });
             status = HTTP_STATUS.CREATED;
             response = team;
         }
@@ -105,21 +103,25 @@ const postTeamMember = async (req, res, next) => {
 
 const deleteTeamMember = async (req, res, next) => {
     try {
-        const { user_id, team_id } = req.body;
-        const teamMember = await getTeamMemberByTeamIdAndUserId({team_id, user_id});
+        const { username, teamname } = req.body;
+        const user = await getUserByUsername(username);
+        const team = await getTeamByName(teamname);
         let status, response;
 
-        if (!teamMember) {
+        if (!user || !team) {
             status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'Team member not found' };
+            response = { error: 'User or team not found' };
         } else {
-            const team = await getTeamById(team_id);
+            const teamMember = await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: user.id });
 
-            if (teamMember.user_id == team.owner_user_id) {
+            if (!teamMember) {
+                status = HTTP_STATUS.NOT_FOUND;
+                response = { error: 'Team member not found' };
+            } else if (teamMember.user_id == team.owner_user_id) {
                 status = HTTP_STATUS.BAD_REQUEST;
                 response = { error: 'Cannot remove team member' };
             } else {
-                await removeTeamMember({ user_id, team_id });
+                await removeTeamMember({ user_id: user.id, team_id: team.id });
                 status = HTTP_STATUS.NO_CONTENT;
                 response = {};
             }

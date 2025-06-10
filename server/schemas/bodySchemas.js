@@ -5,32 +5,32 @@ const twoFaVerifySchema = Joi.object({
 });
 
 const createUserSchema = Joi.object({
-  username: Joi.string().max(64).required(),
+  username: Joi.string().max(32).required(),
   password: Joi.string().max(72).required(), // bcrypt only uses first 72 bytes
 });
 
 const userRoleSchema = Joi.object({
-  user_id: Joi.number().integer().required(),
-  role_id: Joi.number().integer().required(),
+  username: Joi.string().min(1).max(32).required(),
+  rolename: Joi.string().min(1).max(32).required(),
 });
 
 const createTeamSchema = Joi.object({
   name: Joi.string().max(32).required(),
-  owner_user_id: Joi.number().integer().required(),
+  owner_username: Joi.string().min(1).max(32).required(),
 });
 
 const teamMemberSchema = Joi.object({
-  team_id: Joi.number().integer().required(),
-  user_id: Joi.number().integer().required(),
+  username: Joi.string().min(1).max(32).required(),
+  teamname: Joi.string().min(1).max(32).required(),
 });
 
 const createTodoSchema = Joi.object({
   title: Joi.string().min(1).max(64).required(),
   description: Joi.string().min(1).max(256).required(),
   created_at: Joi.date().iso().required(),
-  created_by_user_id: Joi.number().integer().required(),
-  team_id: Joi.number().integer().required(),
-  assigned_user_id: Joi.number().integer().allow(null).required(),
+  created_by_username: Joi.string().min(1).max(32).required(),
+  teamname: Joi.string().min(1).max(32).required(),
+  assigned_to_username: Joi.string().min(1).max(32).required(),
 });
 
 const patchTodoSchema = Joi.object({
@@ -41,7 +41,7 @@ const patchTodoSchema = Joi.object({
 }).min(1);
 
 const loginSchema = Joi.object({
-  username: Joi.string().min(1).max(64).required(),
+  username: Joi.string().min(1).max(32).required(),
   password: Joi.string().min(1).max(128).required(),
 });
 
