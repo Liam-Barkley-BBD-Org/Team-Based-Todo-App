@@ -8,20 +8,23 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_patterns from 'aws-cdk-lib/aws-ecs-patterns';
 import * as rds from 'aws-cdk-lib/aws-rds';
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { ARecord, HostedZone, NsRecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { execSync } from 'child_process';
 import { Construct } from 'constructs';
 import path from 'path';
+import { FargateCluster } from 'aws-cdk-lib/aws-eks';
 
 export class CdkTodoAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     //SECRETS
-    const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', { secretName: 'CdkTodoAppStacktodoapppostg' })
+    const dbCredentials: rds.Credentials = rds.Credentials.fromGeneratedSecret('postgresapi', {
+      secretName: 'post-gres-db-connection'
+    })
     const aesEncryptionSecrets = new secretsmanager.Secret(this, 'aesEncryptionSecrets', {
       secretName: 'aes-256-cbc-key',
       generateSecretString: {
@@ -43,151 +46,147 @@ export class CdkTodoAppStack extends cdk.Stack {
       },
     });
 
-    //FRONT-END STUFF
-    execSync('npm i', { cwd: './../client', stdio: 'inherit' });
-    execSync('npm run build', { cwd: './../client', stdio: 'inherit' });
-
-    const toDoAppBucket = new s3.Bucket(this, 'to-do-app-bucket', {
-      bucketName: 'to-do-app-bucket-v16',
-      versioned: true,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true
-    });
-
-    new BucketDeployment(this, 'front-end-bucket-deployment', {
-      destinationBucket: toDoAppBucket,
-      sources: [Source.asset('./../client/dist')],
-      cacheControl: [CacheControl.noCache()]
-    })
-
-    const hostedZone = new HostedZone(this, 'hosted-zone-front-end', {
+    const hostedZone = new HostedZone(this, 'hostedZone', {
       zoneName: 'acceleratedteamproductivity.shop',
     })
 
-    const certificate = new cdk.aws_certificatemanager.Certificate(this, 'front-end-certificate', {
+    const certificate = new cdk.aws_certificatemanager.Certificate(this, 'domainCertificate', {
       domainName: '*.acceleratedteamproductivity.shop',
-      certificateName: 'front-end-acceleratedteamproductivity-cert',
+      certificateName: 'acceleratedteamproductivity-cert',
       keyAlgorithm: KeyAlgorithm.RSA_2048,
       validation: CertificateValidation.fromDns(hostedZone),
     })
 
-    const cloudFrontFunctionFile: cloudfront.FileCodeOptions = {
-      filePath: path.resolve(__dirname, '../src/cloudFrontProcessing.js')
-    }
 
-    const cloudFrontFunctions = new cloudfront.Function(this, 'BlockByHostFunction', {
-      functionName: 'cloudFrontFunctionProcessing',
-      code: cloudfront.FunctionCode.fromFile(cloudFrontFunctionFile)
-    })
-
-    const frontEndDistribution = new Distribution(this, 'bucket-distribution', {
-      defaultBehavior: {
-        origin: S3BucketOrigin.withOriginAccessControl(toDoAppBucket),
-        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
-        functionAssociations: [
-          {
-            function: cloudFrontFunctions,
-            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
-          }
-        ]
-      },
-      defaultRootObject: 'index.html',
-      certificate: certificate,
-      domainNames: ['app.acceleratedteamproductivity.shop'],
-      enableIpv6: false,
-
-    })
-
-    const frontEndRecord = new ARecord(this, 'front-end-aroute', {
-      target: RecordTarget.fromAlias(new CloudFrontTarget(frontEndDistribution)),
-      zone: hostedZone,
-      recordName: 'app'
-    })
-
-    // //SECURITY STUFF
-    const rdsVpc = new ec2.Vpc(this, 'RdsVpc', {
-      natGateways: 0
-    });
+    if (!process.env.TAKEDOWN) {
+      const generalVpc = new ec2.Vpc(this, 'RdsVpc', {
+        maxAzs: 1,
+        natGateways: 0,
+      });
 
 
-    //DB STUFF
-    const dbSecurityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
-      vpc: rdsVpc,
-      description: 'Allow DB access',
-      allowAllOutbound: true,
-      securityGroupName: 'rds-security-group'
-    });
+      //FRONT-END STUFF
+      execSync('npm i', { cwd: './../client', stdio: 'inherit' });
+      execSync('npm run build', { cwd: './../client', stdio: 'inherit' });
 
-    dbSecurityGroup.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.allTraffic(),
-      'Make the DB Publically accesible'
-    )
+      const toDoAppBucket = new s3.Bucket(this, 'to-do-app-bucket', {
+        bucketName: 'to-do-app-bucket-v16',
+        versioned: true,
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+        autoDeleteObjects: true
+      });
 
-    const dbInstace = new rds.DatabaseInstance(this, 'to-do-app-postgres-instance', {
-      engine: rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_17_5 }),
-      instanceIdentifier: 'to-do-app-postgres-instance',
-      vpc: rdsVpc,
-      backupRetention: cdk.Duration.days(0),
-      credentials: dbCredentials,
-      multiAz: false,
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
-      deletionProtection: false,
-      databaseName: 'todoappdb',
-      allocatedStorage: 20,
-      maxAllocatedStorage: 20,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      storageEncrypted: true,
-      deleteAutomatedBackups: true,
-      publiclyAccessible: true, //NOT FOR LONG HOE
-      vpcSubnets: {
-        subnetType: ec2.SubnetType.PUBLIC
-      },
-      securityGroups: [dbSecurityGroup],
-    });
-
-    //BACK-END STUFF
-    const cluster = new ecs.Cluster(this, 'FargateCluster', {
-      vpc: rdsVpc
-    });
-
-    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'FargateService', {
-      cluster,
-      cpu: 256,
-      memoryLimitMiB: 512,
-      desiredCount: 1,
-      publicLoadBalancer: true,
-      certificate,
-      domainName: 'api.acceleratedteamproductivity.shop',
-      domainZone: hostedZone,
-      listenerPort: 443,
-      protocol: cdk.aws_elasticloadbalancingv2.ApplicationProtocol.HTTPS,
-      redirectHTTP: true,
-      taskImageOptions: {
-        image: ecs.ContainerImage.fromAsset('./../server', {
-          assetName: 'todoappserver:latest'
-        }), // path to your Dockerfile
-        containerPort: 3000, // your Express app port
-        environment: {
-          NODE_ENV: 'production',
-          API_PORT: '3000'
-        },
-      },
-    });
-
-    fargateService.taskDefinition.taskRole.addToPrincipalPolicy(
-      new cdk.aws_iam.PolicyStatement({
-        actions: ['secretsmanager:GetSecretValue'],
-        resources: ['*']
+      new BucketDeployment(this, 'front-end-bucket-deployment', {
+        destinationBucket: toDoAppBucket,
+        sources: [Source.asset('./../client/dist')],
+        cacheControl: [CacheControl.noCache()]
       })
-    )
 
-    fargateService.targetGroup.configureHealthCheck({
-      path: '/',
-      healthyHttpCodes: '200-399',
+      const cloudFrontFunctionFile: cloudfront.FileCodeOptions = {
+        filePath: path.resolve(__dirname, '../src/cloudFrontProcessing.js')
+      }
 
-    });
+      const cloudFrontFunctions = new cloudfront.Function(this, 'BlockByHostFunction', {
+        functionName: 'cloudFrontFunctionProcessing',
+        code: cloudfront.FunctionCode.fromFile(cloudFrontFunctionFile)
+      })
+
+      const frontEndDistribution = new Distribution(this, 'bucket-distribution', {
+        defaultBehavior: {
+          origin: S3BucketOrigin.withOriginAccessControl(toDoAppBucket),
+          viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
+          functionAssociations: [
+            {
+              function: cloudFrontFunctions,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
+            }
+          ]
+        },
+        defaultRootObject: 'index.html',
+        certificate: certificate,
+        domainNames: ['app.acceleratedteamproductivity.shop'],
+        enableIpv6: false,
+      })
+
+      const frontEndRecord = new ARecord(this, 'front-end-aroute', {
+        target: RecordTarget.fromAlias(new CloudFrontTarget(frontEndDistribution)),
+        zone: hostedZone,
+        recordName: 'app'
+      })
+
+      // DB STUFF
+      const dbSecurityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
+        vpc: generalVpc,
+        description: 'Allow DB access',
+        allowAllOutbound: true,
+        securityGroupName: 'rds-security-group'
+      });
+
+      dbSecurityGroup.addIngressRule(
+        ec2.Peer.anyIpv4(),
+        ec2.Port.allTraffic(),
+        'Make the DB Publically accesible'
+      )
+
+      const dbInstace = new rds.DatabaseInstance(this, 'to-do-app-postgres-instance', {
+        engine: rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_17_5 }),
+        instanceIdentifier: 'to-do-app-postgres-instance',
+        vpc: generalVpc,
+        backupRetention: cdk.Duration.days(0),
+        credentials: dbCredentials,
+        multiAz: false,
+        instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+        deletionProtection: false,
+        databaseName: 'todoappdb',
+        allocatedStorage: 20,
+        maxAllocatedStorage: 20,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+        storageEncrypted: true,
+        deleteAutomatedBackups: true,
+        publiclyAccessible: true, //NOT FOR LONG HOE
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PUBLIC
+        },
+        securityGroups: [dbSecurityGroup],
+      });
+
+      //BACK-END STUFF
+      const cluster = new ecs.Cluster(this, 'FargateCluster', {
+        vpc: generalVpc,
+      });
+
+      const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'FargateService', {
+        cluster,
+        cpu: 256,
+        memoryLimitMiB: 512,
+        desiredCount: 1,
+        publicLoadBalancer: false,
+        certificate,
+        domainName: 'api.acceleratedteamproductivity.shop',
+        domainZone: hostedZone,
+        listenerPort: 443,
+        protocol: cdk.aws_elasticloadbalancingv2.ApplicationProtocol.HTTPS,
+        redirectHTTP: true,
+        taskImageOptions: {
+          image: ecs.ContainerImage.fromAsset('./../server', {
+            assetName: 'todoappserver:latest'
+          }),
+          containerPort: 3000,
+          environment: {
+            NODE_ENV: 'production',
+            API_PORT: '3000'
+          },
+        },
+      });
+
+      fargateService.taskDefinition.taskRole.addToPrincipalPolicy(
+        new cdk.aws_iam.PolicyStatement({
+          actions: ['secretsmanager:GetSecretValue'],
+          resources: ['*']
+        })
+      )
+    }
   }
 }
 
