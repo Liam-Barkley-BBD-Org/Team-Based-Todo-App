@@ -18,7 +18,7 @@ const AdminPage: React.FC = () => {
 
     // Add user form state
     const [newUser, setNewUser] = useState({
-        username: '',
+        name: '',
         email: '',
         role: 'team_member',
         department: '',
@@ -27,7 +27,7 @@ const AdminPage: React.FC = () => {
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
-            const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase())
+            const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase())
             const matchesRole = roleFilter === 'all' || user.role === roleFilter;
             const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
 
@@ -57,23 +57,26 @@ const AdminPage: React.FC = () => {
             const roleText = newRole === 'team_leader' ? 'Team Leader' : 'Team Member';
             setToast({
                 isVisible: true,
-                message: `${user.username} ${action} ${roleText}`,
+                message: `${user.name} ${action} ${roleText}`,
             });
         }
     };
 
     const handleAddUser = () => {
-        const { username, email, role, department, status } = newUser;
-        if (!username) {
+        const { name, email, role, department, status } = newUser;
+        if (!name) {
             setToast({ isVisible: true, message: 'Please complete all required fields' });
             return;
         }
 
         const newUserObj: User = {
             id: "",
-            username,
+            name,
+            email,
             role: role as User['role'],
+            department,
             joinedDate: new Date().toISOString().split('T')[0],
+            lastActive: new Date().toISOString().split('T')[0],
             status: status as User['status'],
         };
 
@@ -81,7 +84,7 @@ const AdminPage: React.FC = () => {
         setToast({ isVisible: true, message: `Added ${name} as ${role.replace('_', ' ')}` });
 
         // Clear form
-        setNewUser({ username: '', email: '', role: 'team_member', department: '', status: 'active' });
+        setNewUser({ name: '', email: '', role: 'team_member', department: '', status: 'active' });
     };
 
     const closeToast = () => setToast({ isVisible: false, message: '' });
@@ -122,8 +125,8 @@ const AdminPage: React.FC = () => {
                             type="text"
                             placeholder="Username"
                             className="border p-2 rounded"
-                            value={newUser.username}
-                            onChange={e => setNewUser({ ...newUser, username: e.target.value })}
+                            value={newUser.name}
+                            onChange={e => setNewUser({ ...newUser, name: e.target.value })}
                         />
                         <select
                             className="border p-2 rounded"
