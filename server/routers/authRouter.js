@@ -10,7 +10,11 @@ import {
 import validateMiddleware, {
   PROPERTIES,
 } from "../middlewares/validateMiddleware.js";
-import { createUserSchema, twoFaVerifySchema, loginSchema } from "../schemas/bodySchemas.js";
+import {
+  createUserSchema,
+  twoFaVerifySchema,
+  loginSchema,
+} from "../schemas/bodySchemas.js";
 import {
   requireAccessToken,
   requireAuthSetupScope,
@@ -28,7 +32,12 @@ const authRateLimiter = rateLimit({
 
 const csrfProtection = csurf({ cookie: true });
 
-authRouter.post("/login", authRateLimiter, validateMiddleware(loginSchema, PROPERTIES.BODY), login);
+authRouter.post(
+  "/login",
+  authRateLimiter,
+  validateMiddleware(loginSchema, PROPERTIES.BODY),
+  login
+);
 authRouter.post(
   "/2fa/setup",
   requireAccessToken,

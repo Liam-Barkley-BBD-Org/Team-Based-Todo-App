@@ -1,26 +1,27 @@
 import bcrypt from "bcrypt";
-import speakeasy from "speakeasy";
 import qrcode from "qrcode";
-import {
-  getUserByUsername,
-  getUserById,
-  getUserAuthDetailsById,
-  createUser,
-  updateUser2FASecret,
-} from "../daos/userDao.js";
-import { encrypt, decrypt } from "../utils/cryptoUtil.js";
-import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
-import { signJwt } from "../utils/jwtUtil.js";
-import { getUserRolesByUserId } from "../daos/userRoleDao.js";
+import speakeasy from "speakeasy";
 import {
   createRefreshToken,
   getRefreshToken,
-  rotateRefreshToken,
   isRefreshTokenValid,
   revokeRefreshToken,
+  rotateRefreshToken,
 } from "../daos/refreshTokenDao.js";
 import { getRoleByName } from "../daos/roleDao.js";
-import { createUserRole } from "../daos/userRoleDao.js";
+import {
+  createUser,
+  getUserAuthDetailsById,
+  getUserById,
+  getUserByUsername,
+  updateUser2FASecret,
+} from "../daos/userDao.js";
+import { createUserRole, getUserRolesByUserId } from "../daos/userRoleDao.js";
+import { decrypt, encrypt } from "../utils/cryptoUtil.js";
+import { HTTP_STATUS } from "../utils/httpStatusUtil.js";
+import { signJwt } from "../utils/jwtUtil.js";
+
+const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 const register = async (req, res, next) => {
   try {
@@ -29,13 +30,10 @@ const register = async (req, res, next) => {
     let status, response;
     if (existingUser) {
       status = HTTP_STATUS.CONFLICT;
-      response = { error: "Username already taken" };
+      response = { success: false, message: "Username already taken" };
     } else {
       const hashed_password = await bcrypt.hash(password, 12);
-      const user = await createUser({
-        username,
-        hashed_password,
-      });
+      const user = await createUser({ username, hashed_password });
       const todoUserRole = await getRoleByName("TODO_USER");
       if (todoUserRole && todoUserRole.id) {
         await createUserRole({ user_id: user.id, role_id: todoUserRole.id });
@@ -43,11 +41,9 @@ const register = async (req, res, next) => {
       const accessToken = signJwt({ sub: user.id, scope: "auth_setup" });
       status = HTTP_STATUS.CREATED;
       response = {
+        success: true,
         message: "User registered successfully",
-        user: {
-          id: user.id,
-          username: user.username,
-        },
+        user: { id: user.id, username: user.username },
         token: accessToken,
       };
     }
@@ -61,31 +57,23 @@ const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const user = await getUserByUsername(username);
+    const userauth = user ? await getUserAuthDetailsById(user.id) : null;
+    let valid =
+      userauth && (await bcrypt.compare(password, userauth.hashed_password));
     let status, response;
-    if (!user) {
+    if (!user || !valid) {
       status = HTTP_STATUS.UNAUTHORIZED;
-      response = { message: "Invalid credentials" };
+      response = { success: false, message: "Invalid username or password" };
     } else {
-      const userauth = await getUserAuthDetailsById(user.id);
-      if (!userauth) {
-        status = HTTP_STATUS.UNAUTHORIZED;
-        response = { message: "Invalid credentials" };
-      } else {
-        const valid = await bcrypt.compare(password, userauth.hashed_password);
-        if (!valid) {
-          status = HTTP_STATUS.UNAUTHORIZED;
-          response = { message: "Invalid credentials" };
-        } else {
-          const needs2FASetup = !userauth.encrypted_2fa_secret;
-          const accessToken = signJwt({ sub: user.id, scope: "auth_setup" });
-          status = HTTP_STATUS.OK;
-          response = {
-            message: "Login successful",
-            token: accessToken,
-            needs2FASetup,
-          };
-        }
-      }
+      const needs2FASetup = !userauth.encrypted_2fa_secret;
+      const accessToken = signJwt({ sub: user.id, scope: "auth_setup" });
+      status = HTTP_STATUS.OK;
+      response = {
+        success: true,
+        message: "Login successful",
+        token: accessToken,
+        needs2FASetup,
+      };
     }
     res.status(status).json(response);
   } catch (error) {
@@ -98,23 +86,26 @@ const setup2FA = async (req, res, next) => {
     let status, response;
     if (!req.user || !req.user.id) {
       status = HTTP_STATUS.UNAUTHORIZED;
-      response = { message: "Not logged in" };
+      response = { success: false, message: "Not logged in" };
     } else {
       const user = await getUserById(req.user.id);
       if (!user) {
         status = HTTP_STATUS.UNAUTHORIZED;
-        response = { message: "Not logged in" };
+        response = { success: false, message: "Not logged in" };
       } else {
         const _2faSecret = speakeasy.generateSecret({
           name: "To-Do App",
-          label: `To-Do App`,
-          issuer: "To-Do App",
         });
         const encrypted_2fa_secret = encrypt(_2faSecret.base32);
         await updateUser2FASecret(user.id, encrypted_2fa_secret);
         const qr = await qrcode.toDataURL(_2faSecret.otpauth_url);
         status = HTTP_STATUS.OK;
-        response = { qr, manualCode: _2faSecret.base32 };
+        response = {
+          success: true,
+          message: "2FA setup",
+          qr,
+          manualCode: _2faSecret.base32,
+        };
       }
     }
     res.status(status).json(response);
@@ -145,34 +136,32 @@ const verify2FA = async (req, res, next) => {
         });
         if (verified) {
           const user = await getUserById(req.user.id);
-          let roles = [];
-          let refreshToken;
-          if (user && user.id) {
-            const userRoles = await getUserRolesByUserId(user.id);
-            roles = userRoles.map((r) => r.role_name);
-            refreshToken = await createRefreshToken({
-              userId: user.id,
-              expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-            });
-          }
-          if (refreshToken) {
-            res.cookie("refreshToken", refreshToken, {
-              httpOnly: true,
-              secure: true,
-              sameSite: "strict",
-              maxAge: 7 * 24 * 60 * 60 * 1000,
-            });
-          }
+          const userRoles = await getUserRolesByUserId(user.id);
+          const roles = userRoles.map((r) => r.role_name);
+          const refreshToken = await createRefreshToken({
+            userId: user.id,
+            expires: Date.now() + ONE_WEEK,
+          });
+          res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: ONE_WEEK,
+          });
           const newToken = signJwt({
-            sub: user ? user.id : undefined,
+            sub: user.id,
             roles,
             scope: "full_access",
           });
           status = HTTP_STATUS.OK;
-          response = { success: true, token: newToken };
+          response = {
+            success: true,
+            message: "2FA verified",
+            token: newToken,
+          };
         } else {
           status = HTTP_STATUS.OK;
-          response = { success: false };
+          response = { success: false, message: "Invalid 2FA code" };
         }
       }
     }
@@ -188,7 +177,10 @@ const refreshToken = async (req, res, next) => {
     const oldToken = req.cookies.refreshToken;
     if (!oldToken) {
       status = HTTP_STATUS.UNAUTHORIZED;
-      response = { success: false, message: "Missing refresh token" };
+      response = {
+        success: false,
+        message: "Missing or invalid refresh token",
+      };
     } else {
       const refreshTokenRecord = await getRefreshToken(oldToken);
       if (!refreshTokenRecord || !(await isRefreshTokenValid(oldToken))) {
@@ -200,31 +192,26 @@ const refreshToken = async (req, res, next) => {
       } else {
         const newRefreshToken = await rotateRefreshToken(oldToken, {
           userId: refreshTokenRecord.userId,
-          expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+          expires: Date.now() + ONE_WEEK,
         });
         res.cookie("refreshToken", newRefreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: "strict",
-          maxAge: 7 * 24 * 60 * 60 * 1000,
+          maxAge: ONE_WEEK,
         });
-        let user = null;
-        let roles = [];
-        if (refreshTokenRecord.userId) {
-          user = await getUserById(refreshTokenRecord.userId);
-          if (user && user.id) {
-            const userRoles = await getUserRolesByUserId(user.id);
-            roles = userRoles.map((r) => r.role_name);
-          }
-        }
+        const user = await getUserById(refreshTokenRecord.userId);
+        const userRoles = await getUserRolesByUserId(user.id);
+        const roles = userRoles.map((r) => r.role_name);
         const newToken = signJwt({
-          sub: user ? user.id : undefined,
+          sub: user.id,
           roles,
           scope: "full_access",
         });
         status = HTTP_STATUS.OK;
         response = {
           success: true,
+          message: "Token refreshed",
           token: newToken,
         };
       }
@@ -242,10 +229,20 @@ const logout = async (req, res) => {
     sameSite: "strict",
   });
   const refreshToken = req.cookies.refreshToken;
+  let revokeError = null;
   if (refreshToken) {
-    await revokeRefreshToken(refreshToken);
+    if (!(await revokeRefreshToken(refreshToken))) {
+      revokeError = "Failed to revoke refresh token";
+      console.warn("Failed to revoke refresh token during logout");
+    }
   }
-  res.status(HTTP_STATUS.OK).json({ success: true });
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: revokeError
+      ? "Logged out, but failed to revoke refresh token"
+      : "Logged out successfully",
+    ...(revokeError ? { error: revokeError } : {}),
+  });
 };
 
-export { register, login, logout, setup2FA, verify2FA, refreshToken };
+export { login, logout, refreshToken, register, setup2FA, verify2FA };
