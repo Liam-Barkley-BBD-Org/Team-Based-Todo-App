@@ -12,6 +12,7 @@ import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
 import type { Task, Team, User } from "../components/task-detail-modal"
 import { TaskDetailModal } from "../components/task-detail-modal"
+import styles from "../styles/TeamView.module.css"
 
 
 // Mock data for Team Alpha
@@ -221,154 +222,6 @@ export default function TeamView() {
     setIsTaskModalOpen(false)
   }
 
-  const headerStyle: React.CSSProperties = {
-    display: "flex",
-    height: "64px",
-    alignItems: "center",
-    borderBottom: "1px solid #e5e7eb",
-    padding: "0 16px",
-  }
-
-  const backButtonStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "4px 8px",
-    fontSize: "14px",
-    color: "#374151",
-    backgroundColor: "transparent",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    textDecoration: "none",
-    transition: "background-color 0.2s ease",
-  }
-
-  const mainStyle: React.CSSProperties = {
-    flex: 1,
-    padding: "24px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "24px",
-  }
-
-  const teamHeaderStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "16px",
-  }
-
-  const teamTitleStyle: React.CSSProperties = {
-    fontSize: "24px",
-    fontWeight: "600",
-    color: "#111827",
-    margin: "0 0 8px 0",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  }
-
-  const ownerStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    fontSize: "14px",
-    color: "#6b7280",
-  }
-
-  const membersStyle: React.CSSProperties = {
-    marginTop: "12px",
-  }
-
-  const memberListStyle: React.CSSProperties = {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "12px",
-    marginTop: "12px",
-  }
-
-  const memberItemStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    backgroundColor: "#f3f4f6",
-    borderRadius: "8px",
-    padding: "8px 12px",
-  }
-
-  const tasksHeaderStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  }
-
-  const filtersStyle: React.CSSProperties = {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-  }
-
-  const taskListStyle: React.CSSProperties = {
-    border: "1px solid #e5e7eb",
-    borderRadius: "8px",
-    overflow: "hidden",
-  }
-
-  const taskItemStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    padding: "16px",
-    borderBottom: "1px solid #e5e7eb",
-    cursor: "pointer",
-    transition: "background-color 0.2s ease",
-  }
-
-  const taskContentStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    flex: 1,
-  }
-
-  const taskDetailsStyle: React.CSSProperties = {
-    flex: 1,
-  }
-
-  const taskTitleStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginBottom: "4px",
-  }
-
-  const taskMetaStyle: React.CSSProperties = {
-    fontSize: "14px",
-    color: "#6b7280",
-  }
-
-  const emptyStateStyle: React.CSSProperties = {
-    padding: "32px",
-    textAlign: "center",
-    color: "#6b7280",
-  }
-
-  const toastStyle: React.CSSProperties = {
-    position: "fixed",
-    top: "20px",
-    right: "20px",
-    backgroundColor: "#111827",
-    color: "white",
-    padding: "12px 16px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    zIndex: 1000,
-    opacity: toastMessage ? 1 : 0,
-    transform: toastMessage ? "translateY(0)" : "translateY(-20px)",
-    transition: "all 0.3s ease",
-  }
-
   const statusOptions = [
     { value: "all", label: "All Status" },
     { value: "open", label: "Open" },
@@ -392,132 +245,163 @@ export default function TeamView() {
   return (
     <PureSidebar>
       {/* Toast */}
-      <div style={toastStyle}>{toastMessage}</div>
+      <div
+        role="status"
+        className={`${styles.toast} ${toastMessage ? styles.show : ""}`}
+      >
+        {toastMessage}
+      </div>
 
       {/* Header */}
-      <header style={headerStyle}>
-        <Link href="/" style={backButtonStyle}>
-          <ArrowLeft size={16} />
-          Back to Dashboard
-        </Link>
+      <header className={styles.header}>
+        <nav aria-label="Back navigation">
+          <Link href="/" className={styles.backButton}>
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </Link>
+        </nav>
       </header>
 
       {/* Main Content */}
-      <main style={mainStyle}>
+      <main className={styles.main}>
         {/* Team Header */}
-        <PureCard>
-          <CardContent>
-            <div style={teamHeaderStyle}>
-              <div>
-                <h1 style={teamTitleStyle}>Team: {teamData.name}</h1>
-                <div style={ownerStyle}>
-                  <Crown size={16} />
-                  <span>Owner: {teamData.owner.name}</span>
-                </div>
-              </div>
-              <PureButton>
-                <UserPlus size={16} style={{ marginRight: "8px" }} />
-                Add Member
-              </PureButton>
-            </div>
-            <div style={membersStyle}>
-              <h3 style={{ fontSize: "16px", fontWeight: "500", margin: "0 0 12px 0" }}>Members:</h3>
-              <div style={memberListStyle}>
-                {teamData.members.map((member) => (
-                  <div key={member.id} style={memberItemStyle}>
-                    <PureAvatar src={member.avatar} alt={member.name} fallback={member.initials} size={24} />
-                    <span style={{ fontSize: "14px" }}>{member.name}</span>
-                    {member.role === "Owner" && <Crown size={12} color="#eab308" />}
+        <section aria-labelledby="team-title">
+          <PureCard>
+            <CardContent className="">
+              <header className={styles.teamHeader}>
+                <div>
+                  <h1 id="team-title" className={styles.teamTitle}>
+                    Team: {teamData.name}
+                  </h1>
+                  <div className={styles.owner}>
+                    <Crown size={16} />
+                    <span>Owner: {teamData.owner.name}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </PureCard>
+                </div>
+                <PureButton>
+                  <UserPlus size={16} style={{ marginRight: 8 }} />
+                  Add Member
+                </PureButton>
+              </header>
+
+              <section aria-labelledby="team-members" className={styles.members}>
+                <h2
+                  id="team-members"
+                  style={{ fontSize: 16, fontWeight: 500, margin: "0 0 12px 0" }}
+                >
+                  Members:
+                </h2>
+                <ul className={styles.memberList}>
+                  {teamData.members.map((member) => (
+                    <li key={member.id} className={styles.memberItem}>
+                      <PureAvatar
+                        src={member.avatar}
+                        alt={member.name}
+                        fallback={member.initials}
+                        size={24}
+                      />
+                      <span style={{ fontSize: 14 }}>{member.name}</span>
+                      {member.role === "Owner" && <Crown size={12} color="#eab308" />}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </CardContent>
+          </PureCard>
+        </section>
 
         {/* Tasks Section */}
-        <div>
-          <div style={tasksHeaderStyle}>
-            <h2 style={{ fontSize: "20px", fontWeight: "600", color: "#111827", margin: 0 }}>Tasks</h2>
+        <section aria-labelledby="task-section">
+          <header className={styles.tasksHeader}>
+            <h2
+              id="task-section"
+              style={{ fontSize: 20, fontWeight: 600, color: "#111827", margin: 0 }}
+            >
+              Tasks
+            </h2>
             <PureButton>
-              <Plus size={16} style={{ marginRight: "8px" }} />
+              <Plus size={16} style={{ marginRight: 8 }} />
               Add Task
             </PureButton>
-          </div>
+          </header>
 
-          {/* Filters and Sort */}
-          <div style={filtersStyle}>
+          {/* Filters */}
+          <section aria-label="Task Filters" className={styles.filters}>
             <PureSelect
               value={statusFilter}
               onValueChange={setStatusFilter}
               options={statusOptions}
-              style={{ width: "140px" }}
+              style={{ width: 140 }}
             />
-
             <PureSelect
               value={userFilter}
               onValueChange={setUserFilter}
               options={userOptions}
-              style={{ width: "140px" }}
+              style={{ width: 140 }}
             />
-
-            <PureSelect value={sortBy} onValueChange={setSortBy} options={sortOptions} style={{ width: "120px" }} />
-          </div>
+            <PureSelect
+              value={sortBy}
+              onValueChange={setSortBy}
+              options={sortOptions}
+              style={{ width: 120 }}
+            />
+          </section>
 
           {/* Task List */}
           <PureCard>
-            <div style={taskListStyle}>
+            <section aria-label="Task List" className={styles.taskList}>
+              {filteredTasks.length === 0 && (
+                <p className={styles.emptyState}>No tasks found matching your filters.</p>
+              )}
               {filteredTasks.map((task, index) => (
-                <div
+                <article
                   key={task.id}
-                  style={{
-                    ...taskItemStyle,
-                    borderBottom: index === filteredTasks.length - 1 ? "none" : "1px solid #e5e7eb",
-                  }}
+                  className={`${styles.taskItem} ${index === filteredTasks.length - 1 ? styles.taskItemLast : ""
+                    }`}
                   onClick={() => handleTaskClick(task)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f9fafb"
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent"
-                  }}
+                  onMouseEnter={(e) =>
+                    e.currentTarget.classList.add(styles.taskItemHover)
+                  }
+                  onMouseLeave={(e) =>
+                    e.currentTarget.classList.remove(styles.taskItemHover)
+                  }
                 >
-                  <div style={taskContentStyle}>
+                  <div className={styles.taskContent}>
                     {getStatusIcon(task.status)}
-                    <div style={taskDetailsStyle}>
-                      <div style={taskTitleStyle}>
-                        <span style={{ fontSize: "16px", fontWeight: "500" }}>{task.title}</span>
+                    <div className={styles.taskDetails}>
+                      <div className={styles.taskTitle}>
+                        <span className={styles.taskTitleText}>{task.title}</span>
                         {getPriorityBadge(task.priority)}
                       </div>
-                      <div style={taskMetaStyle}>
+                      <div className={styles.taskMeta}>
                         {task.assigneeId ? (
                           <span>Assigned: {users.find((u) => u.id === task.assigneeId)?.name}</span>
                         ) : (
-                          <span style={{ color: "#f59e0b" }}>Unassigned</span>
+                          <span className={styles.unassigned}>Unassigned</span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div style={{ fontSize: "14px", color: "#6b7280" }}>{getStatusText(task.status)}</div>
-                </div>
+                  <div style={{ fontSize: 14, color: "#6b7280" }}>{getStatusText(task.status)}</div>
+                </article>
               ))}
-
-              {filteredTasks.length === 0 && <div style={emptyStateStyle}>No tasks found matching your filters.</div>}
-            </div>
+            </section>
           </PureCard>
-        </div>
+        </section>
+      </main>
 
-        {/* Task Detail Modal */}
+      {/* Task Detail Modal */}
+      {isTaskModalOpen && selectedTask && (
         <TaskDetailModal
           task={selectedTask}
-          isOpen={isTaskModalOpen}
-          onClose={() => setIsTaskModalOpen(false)}
-          onSave={handleSaveTask}
-          onDelete={handleDeleteTask}
+          isOpen={true}
           teams={teams}
           users={users}
+          onSave={handleSaveTask}
+          onDelete={handleDeleteTask}
+          onClose={() => setIsTaskModalOpen(false)}
         />
-      </main>
+      )}
     </PureSidebar>
   )
 }

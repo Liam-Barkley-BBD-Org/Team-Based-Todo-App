@@ -11,44 +11,30 @@ import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import TwoFactorPage from './pages/TwoFactorPage.tsx';
+import AdminPage from './pages/AdminPage.tsx';
+import ProtectedRoute from './components/protected-route.tsx';
+
+// Simulate the logged-in user's ID for now
+const loggedInUserId = "123"; // TODO: Replace with context or auth
 
 const router = createBrowserRouter([
+  { path: "/", element: <App /> },
+  { path: "/dashboard", element: <Dashboard /> },
   {
-    path: '/',
-    element: <App />
+    path: "/create-team",
+    element: (
+      <ProtectedRoute userId={loggedInUserId} requiredRole="Team Leader">
+        <CreateTeamPage userId={loggedInUserId} />
+      </ProtectedRoute>
+    ),
   },
-  {
-    path: '/dashboard',
-    element: <Dashboard />
-  },
-  {
-    path: '/create-team',
-    element: <CreateTeamPage />
-  },
-  {
-    path: '/create-task',
-    element: <CreateTaskPage />
-  },
-  {
-    path: '/task-details',
-    element: <TaskDetailPage />
-  },
-  {
-    path: '/login',
-    element: <LoginPage />
-  },
-  {
-    path: '/signup',
-    element: <SignupPage />
-  },
-  {
-    path: '/reset-password',
-    element: <ForgotPasswordPage />
-  },
-  {
-    path: '/2fa',
-    element: <TwoFactorPage />
-  }
+  { path: "/create-task", element: <CreateTaskPage /> },
+  { path: "/task-details", element: <TaskDetailPage /> },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/signup", element: <SignupPage /> },
+  { path: "/reset-password", element: <ForgotPasswordPage /> },
+  { path: "/2fa", element: <TwoFactorPage /> },
+  { path: "/admin-roles", element: <AdminPage /> },
 ]);
 
 createRoot(document.getElementById('root')!).render(

@@ -36,13 +36,13 @@ const ResetPasswordPage: React.FC = () => {
 
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            setIsSuccess(true);
-            console.log('Password reset request for:', username);
-            // Handle password reset logic here
-        }, 2000);
+        // // Simulate API call
+        // setTimeout(() => {
+        //     setIsLoading(false);
+        //     setIsSuccess(true);
+        //     console.log('Password reset request for:', username);
+        //     // Handle password reset logic here
+        // }, 2000);
     };
 
     const handleBackToLogin = () => {
@@ -52,10 +52,10 @@ const ResetPasswordPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <main className="min-h-screen flex items-center justify-center p-4">
+            <section className="w-full max-w-md" aria-labelledby="reset-password-title">
                 {/* Back to Login */}
-                <div className="mb-6">
+                <nav className="mb-6" aria-label="Back navigation">
                     <Link
                         to="/login"
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors font-medium"
@@ -63,24 +63,26 @@ const ResetPasswordPage: React.FC = () => {
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to login
                     </Link>
-                </div>
+                </nav>
 
                 {!isSuccess ? (
                     <>
                         {/* Header */}
-                        <div className="text-center mb-8">
+                        <header className="text-center mb-8">
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
                                 <Mail className="w-8 h-8 text-white" />
                             </div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Reset password</h1>
+                            <h1 id="reset-password-title" className="text-3xl font-bold text-gray-900 mb-2">
+                                Reset password
+                            </h1>
                             <p className="text-gray-600">
                                 Enter your username and we'll send you instructions to reset your password
                             </p>
-                        </div>
+                        </header>
 
                         {/* Reset Form */}
-                        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                        <article className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                            <form onSubmit={handleSubmit} className="space-y-6" aria-label="Password reset form">
                                 {/* Username Field */}
                                 <div>
                                     <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -96,13 +98,14 @@ const ResetPasswordPage: React.FC = () => {
                                             name="username"
                                             value={username}
                                             onChange={handleInputChange}
-                                            className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.username ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
-                                                }`}
+                                            className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.username ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'}`}
                                             placeholder="Enter your username"
+                                            aria-invalid={!!errors.username}
+                                            aria-describedby={errors.username ? "username-error" : undefined}
                                         />
                                     </div>
                                     {errors.username && (
-                                        <p className="mt-2 text-sm text-red-600 flex items-center">
+                                        <p id="username-error" className="mt-2 text-sm text-red-600 flex items-center">
                                             <span className="w-4 h-4 mr-1">⚠</span>
                                             {errors.username}
                                         </p>
@@ -127,26 +130,29 @@ const ResetPasswordPage: React.FC = () => {
                             </form>
 
                             {/* Additional Help */}
-                            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+                            <aside className="mt-6 p-4 bg-gray-50 rounded-xl" aria-label="Additional help">
                                 <p className="text-sm text-gray-600 mb-2">
                                     <strong>Need help?</strong>
                                 </p>
-                                <ul className="text-sm text-gray-600 space-y-1">
-                                    <li>• Make sure you enter the correct username</li>
-                                    <li>• Check your email (including spam folder)</li>
-                                    <li>• Contact support if you don't receive instructions</li>
+                                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                                    <li>Make sure you enter the correct username</li>
+                                    <li>Check your email (including spam folder)</li>
+                                    <li>Contact support if you don't receive instructions</li>
                                 </ul>
-                            </div>
-                        </div>
+                            </aside>
+                        </article>
                     </>
                 ) : (
-                    /* Success State */
-                    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
+                    // Success State
+                    <article
+                        className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center"
+                        aria-labelledby="success-title"
+                    >
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
                             <CheckCircle className="w-8 h-8 text-green-600" />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                        <h2 id="success-title" className="text-2xl font-bold text-gray-900 mb-4">
                             Instructions sent!
                         </h2>
 
@@ -155,17 +161,20 @@ const ResetPasswordPage: React.FC = () => {
                             <span className="font-semibold text-gray-900">{username}</span>.
                         </p>
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                        <section
+                            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left"
+                            aria-label="Next steps"
+                        >
                             <p className="text-sm text-blue-800">
                                 <strong>What's next?</strong>
                             </p>
-                            <ul className="text-sm text-blue-700 mt-2 space-y-1 text-left">
-                                <li>1. Check your email inbox</li>
-                                <li>2. Click the reset link in the email</li>
-                                <li>3. Create your new password</li>
-                                <li>4. Sign in with your new password</li>
-                            </ul>
-                        </div>
+                            <ol className="text-sm text-blue-700 mt-2 space-y-1 list-decimal list-inside">
+                                <li>Check your email inbox</li>
+                                <li>Click the reset link in the email</li>
+                                <li>Create your new password</li>
+                                <li>Sign in with your new password</li>
+                            </ol>
+                        </section>
 
                         <div className="space-y-3">
                             <button
@@ -185,10 +194,10 @@ const ResetPasswordPage: React.FC = () => {
                                 </button>
                             </p>
                         </div>
-                    </div>
+                    </article>
                 )}
-            </div>
-        </div>
+            </section>
+        </main>
     );
 };
 
