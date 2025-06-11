@@ -1,0 +1,5 @@
+export const ROLES = {
+  ACCESS_ADMIN: "ACCESS_ADMIN",
+  TEAM_LEAD: "TEAM_LEAD",
+  TODO_USER: "TODO_USER",
+};

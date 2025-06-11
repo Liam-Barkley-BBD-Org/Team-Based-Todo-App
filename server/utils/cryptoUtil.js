@@ -21,9 +21,9 @@ export function encrypt(text) {
 
 export function decrypt(encryptedBase64) {
   const data = Buffer.from(encryptedBase64, "base64");
-  const iv = data.slice(0, 12);
-  const authTag = data.slice(12, 28);
-  const encryptedText = data.slice(28);
+  const iv = Uint8Array.prototype.slice.call(data, 0, 12);
+  const authTag = Uint8Array.prototype.slice.call(data, 12, 28);
+  const encryptedText = Uint8Array.prototype.slice.call(data, 28);
 
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
   decipher.setAuthTag(authTag);
