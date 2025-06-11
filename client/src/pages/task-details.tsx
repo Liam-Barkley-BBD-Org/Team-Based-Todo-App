@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import type React from "react"
@@ -185,7 +186,7 @@ export default function TaskDetailPage() {
     setDeleteDialogOpen(false)
   }
 
-  const handleTaskFieldChange = (field: keyof Task, value: any) => {
+  const handleTaskFieldChange = (field: keyof Task, value: unknown) => {
     setEditedTask((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -400,14 +401,14 @@ export default function TaskDetailPage() {
                     <label style={sidebarLabelStyle}>Title</label>
                     <PureInput
                       value={editedTask.title}
-                      onChange={(e: { target: { value: any } }) => handleTaskFieldChange("title", e.target.value)}
+                      onChange={(e: { target: { value: unknown } }) => handleTaskFieldChange("title", e.target.value)}
                     />
                   </div>
                   <div>
                     <label style={sidebarLabelStyle}>Description</label>
                     <PureTextarea
                       value={editedTask.description}
-                      onChange={(e: { target: { value: any } }) => handleTaskFieldChange("description", e.target.value)}
+                      onChange={(e: { target: { value: unknown } }) => handleTaskFieldChange("description", e.target.value)}
                       rows={6}
                     />
                   </div>
@@ -416,7 +417,7 @@ export default function TaskDetailPage() {
                       <label style={sidebarLabelStyle}>Status</label>
                       <PureSelect
                         value={editedTask.status}
-                        onValueChange={(value: any) => handleTaskFieldChange("status", value)}
+                        onValueChange={(value: unknown) => handleTaskFieldChange("status", value)}
                         options={statuses}
                       />
                     </div>

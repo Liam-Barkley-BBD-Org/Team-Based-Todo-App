@@ -10,7 +10,7 @@ import { PureButton } from "../components/pure-button"
 import { PureCard, CardContent } from "../components/pure-card"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { Task, Team, User, TaskDetailModal } from "../components/task-detail-modal"
+import { type Task, type Team, type User, TaskDetailModal } from "../components/task-detail-modal"
 
 
 // Mock data for Team Alpha
@@ -138,15 +138,15 @@ export default function TeamView() {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "priority":
-          const priorityOrder = { high: 3, medium: 2, low: 1 }
+          { const priorityOrder = { high: 3, medium: 2, low: 1 }
           return (
             priorityOrder[b.priority as keyof typeof priorityOrder] -
             priorityOrder[a.priority as keyof typeof priorityOrder]
-          )
+          ) }
         case "assignee":
-          const aName = users.find((u) => u.id === a.assigneeId)?.name || "Unassigned"
+          { const aName = users.find((u) => u.id === a.assigneeId)?.name || "Unassigned"
           const bName = users.find((u) => u.id === b.assigneeId)?.name || "Unassigned"
-          return aName.localeCompare(bName)
+          return aName.localeCompare(bName) }
         case "status":
           return a.status.localeCompare(b.status)
         default: // created
