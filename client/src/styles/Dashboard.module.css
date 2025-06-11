@@ -1,0 +1,217 @@
+.header {
+    display: flex;
+    height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 16px;
+}
+
+.userMenu {
+    position: relative;
+}
+
+.userButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    width: 192px;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+}
+
+.dropdownButton {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #374151;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.main {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.welcomeTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+    margin: 0;
+}
+
+.filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.filtersRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.searchContainer {
+    position: relative;
+    width: 250px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tasksTitle {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.taskGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.taskContent {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.taskLeft {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.taskDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.taskTitle {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111827;
+    margin: 0;
+}
+
+.taskMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.cardContentCenter {
+    padding: 32px;
+    text-align: center;
+}
+
+.statusBadge {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 9999px;
+}
+
+.statusOpen {
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+.statusInProgress {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.statusCompleted {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.userMenuBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+}
+
+.statusIconCompleted {
+    color: #059669;
+}
+
+.statusIconInProgress {
+    color: #f59e0b;
+}
+
+.statusIconDefault {
+    color: #9ca3af;
+}
+
+.statusIconMarginRight {
+    margin-right: 8px;
+}

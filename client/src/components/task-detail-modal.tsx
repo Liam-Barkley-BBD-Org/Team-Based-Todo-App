@@ -158,13 +158,13 @@ export function TaskDetailModal({ task, isOpen, onClose, onSave, onDelete, teams
         isOpen={isOpen}
         onClose={onClose}
         title={editedTask.title}
-        // description=
-        // description={
-        //   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        //     <Clock size={12} />
-        //     Created on {formatDate(editedTask.createdAt)} by {editedTask.createdBy.name}
-        //   </div>
-        // }
+      // description=
+      // description={
+      //   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      //     <Clock size={12} />
+      //     Created on {formatDate(editedTask.createdAt)} by {editedTask.createdBy.name}
+      //   </div>
+      // }
       >
         <div style={formGroupStyle}>
           <label style={labelStyle} htmlFor="description">

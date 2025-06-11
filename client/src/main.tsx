@@ -14,6 +14,15 @@ import { ProtectedRoute } from './layouts/ProtectedRoute.tsx';
 
 
 const queryClient = new QueryClient({ });
+import LoginPage from './pages/LoginPage.tsx';
+import SignupPage from './pages/SignupPage.tsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
+import TwoFactorPage from './pages/TwoFactorPage.tsx';
+import AdminPage from './pages/AdminPage.tsx';
+import ProtectedRoute from './components/protected-route.tsx';
+
+// Simulate the logged-in user's ID for now
+const loggedInUserId = "123"; // TODO: Replace with context or auth
 
 const router = createBrowserRouter([
   {
@@ -23,6 +32,11 @@ const router = createBrowserRouter([
         path: '/login',
         element: <LoginPage />,
       },
+  { path: "/login", element: <LoginPage /> },
+    { path: "/signup", element: <SignupPage /> },
+    { path: "/reset-password", element: <ForgotPasswordPage /> },
+    { path: "/2fa", element: <TwoFactorPage /> },
+    { path: "/admin-roles", element: <AdminPage /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -55,6 +69,8 @@ const router = createBrowserRouter([
 
     ],
   },
+
+
 ]);
 
 createRoot(document.getElementById('root')!).render(
