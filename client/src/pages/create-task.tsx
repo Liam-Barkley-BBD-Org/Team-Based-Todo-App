@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
+import "../styles/CreateTaskPage.css";
 
 import { useState, useEffect, useMemo } from "react"
-import { Plus, ArrowLeft, FileText, Save, Loader2 } from "lucide-react"
-import { PureBadge } from "../components/pure-badge"
+import { ArrowLeft, FileText, Save, Loader2 } from "lucide-react"
 import { PureButton } from "../components/pure-button"
 import { PureCard, CardContent } from "../components/pure-card"
 import { PureLabel, PureTextarea } from "../components/pure-form"
@@ -68,9 +68,9 @@ export default function CreateTaskPage() {
     mutationFn: apiService.todos.createTodo,
     onSuccess: (data) => {
       showToast(`Task "${data.title}" created successfully!`);
-      queryClient.invalidateQueries({ queryKey: ['teamTodos', data.teamname] });
+      queryClient.invalidateQueries({ queryKey: ['teamTodos', formData.teamname] });
       queryClient.invalidateQueries({ queryKey: ['todos', user?.username] });
-      navigate(`/team-details/${data.teamname}`);
+      navigate(`/team-details/${formData.teamname}`);
     },
     onError: (error) => {
       const message = error.response?.data?.message || "Failed to create task.";
@@ -117,75 +117,62 @@ export default function CreateTaskPage() {
     return [{ value: '', label: "Unassigned" }, ...teamMembers.map(m => ({ value: m.user.username, label: m.user.username }))];
   }, [teamMembers, isLoadingTeamMembers]);
 
-  // --- Style Definitions ---
-  const headerStyle: React.CSSProperties = { display: "flex", height: "64px", alignItems: "center", borderBottom: "1px solid #e5e7eb", padding: "0 16px" };
-  const backButtonStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: "8px", padding: "4px 8px", fontSize: "14px", color: "#374151", backgroundColor: "transparent", border: "none", borderRadius: "6px", cursor: "pointer", textDecoration: "none", transition: "background-color 0.2s ease" };
-  const mainStyle: React.CSSProperties = { flex: 1, padding: "24px" };
-  const containerStyle: React.CSSProperties = { maxWidth: "768px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" };
-  const headerTextStyle: React.CSSProperties = { textAlign: "center", marginBottom: "24px" };
-  const titleStyle: React.CSSProperties = { fontSize: "30px", fontWeight: "bold", color: "#111827", margin: "0 0 8px 0" };
-  const subtitleStyle: React.CSSProperties = { fontSize: "16px", color: "#6b7280", margin: 0 };
-  const formStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "24px" };
-  const formGroupStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "8px" };
-  const gridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" };
-  const errorStyle: React.CSSProperties = { fontSize: "14px", color: "#dc2626", marginTop: "4px" };
-  const buttonContainerStyle: React.CSSProperties = { display: "flex", gap: "12px", justifyContent: "flex-end", paddingTop: "16px" };
-  const toastStyle: React.CSSProperties = { position: "fixed", top: "20px", right: "20px", backgroundColor: "#111827", color: "white", padding: "12px 16px", borderRadius: "8px", fontSize: "14px", zIndex: 1000, opacity: toastMessage ? 1 : 0, transform: toastMessage ? "translateY(0)" : "translateY(-20px)", transition: "all 0.3s ease" };
-
   return (
     <PureSidebar>
-      <div style={toastStyle}>{toastMessage}</div>
-      <header style={headerStyle}>
-        <Link to={-1 as unknown as string} style={backButtonStyle}>
-          <ArrowLeft size={16} /> Back
-        </Link>
-      </header>
-      <main style={mainStyle}>
-        <div style={containerStyle}>
-          <div style={headerTextStyle}>
-            <h1 style={titleStyle}>Create New Task</h1>
-            <p style={subtitleStyle}>Fill in the details below to create a new task for your team.</p>
+      <div className={`create-task-toast ${toastMessage ? 'create-task-toast--visible' : ''}`}>{toastMessage}</div>
+
+      <div className="create-task-page-wrapper">
+        <header className="create-task-header">
+          <Link to={-1 as unknown as string} className="create-task-back-button">
+            <ArrowLeft size={16} /> Back
+          </Link>
+        </header>
+
+        <main className="create-task-main">
+          <div className="create-task-container">
+            <section className="create-task-intro" aria-labelledby="page-title">
+              <h1 id="page-title" className="create-task-intro__title">Create New Task</h1>
+              <p className="create-task-intro__subtitle">Fill in the details below to create a new task for your team.</p>
+            </section>
+
+            <form onSubmit={handleSubmit} className="create-task-form" noValidate>
+              <PureCard>
+                <CardContent>
+                  <h2 className="create-task-form__card-header"><FileText size={20} /> Task Details</h2>
+                  <div className="create-task-form__group">
+                    <PureLabel htmlFor="title">Task Title *</PureLabel>
+                    <PureInput id="title" placeholder="e.g., Design new marketing banner" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} style={{ borderColor: errors.title ? '#dc2626' : undefined }} />
+                    {errors.title && <div className="create-task-form__error">{errors.title}</div>}
+                  </div>
+                  <div className="create-task-form__group">
+                    <PureLabel htmlFor="description">Description *</PureLabel>
+                    <PureTextarea id="description" placeholder="Provide details about the task..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} rows={4} style={{ borderColor: errors.description ? '#dc2626' : undefined }} />
+                    {errors.description && <div className="create-task-form__error">{errors.description}</div>}
+                  </div>
+                  <div className="create-task-form__grid">
+                    <div className="create-task-form__group">
+                      <PureLabel>Team *</PureLabel>
+                      <PureSelect value={formData.teamname} onValueChange={(v) => handleInputChange("teamname", v)} options={teamOptions} placeholder="Select team" style={{ borderColor: errors.teamname ? '#dc2626' : undefined }} />
+                      {errors.teamname && <div className="create-task-form__error">{errors.teamname}</div>}
+                    </div>
+                    <div className="create-task-form__group">
+                      <PureLabel>Assignee</PureLabel>
+                      <PureSelect value={formData.assigned_to_username || ''} onValueChange={(v) => handleInputChange("assigned_to_username", v || null)} options={assigneeOptions} placeholder="Select assignee" disabled={isLoadingTeamMembers || !formData.teamname} />
+                    </div>
+                  </div>
+                </CardContent>
+              </PureCard>
+              <div className="create-task-form__actions">
+                <PureButton type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</PureButton>
+                <PureButton type="submit" disabled={createTaskMutation.isPending} style={{ minWidth: "140px" }}>
+                  {createTaskMutation.isPending ? (<Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />) : (<Save size={16} style={{ marginRight: "8px" }} />)}
+                  {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
+                </PureButton>
+              </div>
+            </form>
           </div>
-          <form onSubmit={handleSubmit} style={formStyle} noValidate>
-            <PureCard>
-              <CardContent>
-                <h2 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <FileText size={20} /> Task Details
-                </h2>
-                <div style={formGroupStyle}>
-                  <PureLabel htmlFor="title">Task Title *</PureLabel>
-                  <PureInput id="title" placeholder="e.g., Design new marketing banner" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} style={{ borderColor: errors.title ? '#dc2626' : undefined }} />
-                  {errors.title && <div style={errorStyle}>{errors.title}</div>}
-                </div>
-                <div style={formGroupStyle}>
-                  <PureLabel htmlFor="description">Description *</PureLabel>
-                  <PureTextarea id="description" placeholder="Provide details about the task..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} rows={4} style={{ borderColor: errors.description ? '#dc2626' : undefined }} />
-                  {errors.description && <div style={errorStyle}>{errors.description}</div>}
-                </div>
-                <div style={gridStyle}>
-                  <div style={formGroupStyle}>
-                    <PureLabel>Team *</PureLabel>
-                    <PureSelect value={formData.teamname} onValueChange={(v) => handleInputChange("teamname", v)} options={teamOptions} placeholder="Select team" style={{ borderColor: errors.teamname ? '#dc2626' : undefined }} />
-                    {errors.teamname && <div style={errorStyle}>{errors.teamname}</div>}
-                  </div>
-                  <div style={formGroupStyle}>
-                    <PureLabel>Assignee</PureLabel>
-                    <PureSelect value={formData.assigned_to_username || ''} onValueChange={(v) => handleInputChange("assigned_to_username", v || null)} options={assigneeOptions} placeholder="Select assignee" disabled={isLoadingTeamMembers || !formData.teamname} />
-                  </div>
-                </div>
-              </CardContent>
-            </PureCard>
-            <div style={buttonContainerStyle}>
-              <PureButton type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</PureButton>
-              <PureButton type="submit" disabled={createTaskMutation.isPending} style={{ minWidth: "140px" }}>
-                {createTaskMutation.isPending ? (<Loader2 size={16} style={{ marginRight: '8px', animation: "spin 1s linear infinite" }} />) : (<Save size={16} style={{ marginRight: "8px" }} />)}
-                {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
-              </PureButton>
-            </div>
-          </form>
-        </div>
-      </main>
-      <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </main>
+      </div>
     </PureSidebar>
   );
 }

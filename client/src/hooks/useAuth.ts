@@ -17,7 +17,7 @@ export const useAuth = (): AuthHookReturn => {
   const token = tokenManager.getToken();
 
   if (!token) {
-    return { isAuthenticated: true, user: { username: "San" }, roles: ['TODO_USER', 'TEAM_LEAD'] };
+    return { isAuthenticated: false, user: null, roles: [] };
   }
 
   try {

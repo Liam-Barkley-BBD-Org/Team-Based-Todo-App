@@ -9,11 +9,10 @@ import TaskDetailPage from './pages/task-details.tsx';
 import TeamView from './pages/team-detail.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RootLayout } from './layouts/RootLayout.tsx';
-import LoginPage from './pages/LoginPage.tsx';
-import { ProtectedRoute } from './layouts/ProtectedRoute.tsx';
+import { AuthProtectedRoute } from './layouts/ProtectedRoute.tsx';
 
 
-const queryClient = new QueryClient({ });
+const queryClient = new QueryClient({});
 import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
@@ -28,17 +27,13 @@ const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
+      { path: "/login", element: <LoginPage /> },
+      { path: "/signup", element: <SignupPage /> },
+      { path: "/reset-password", element: <ForgotPasswordPage /> },
+      { path: "/2fa", element: <TwoFactorPage /> },
+      { path: "/admin-roles", element: <AdminPage /> },
       {
-        path: '/login',
-        element: <LoginPage />,
-      },
-  { path: "/login", element: <LoginPage /> },
-    { path: "/signup", element: <SignupPage /> },
-    { path: "/reset-password", element: <ForgotPasswordPage /> },
-    { path: "/2fa", element: <TwoFactorPage /> },
-    { path: "/admin-roles", element: <AdminPage /> },
-      {
-        element: <ProtectedRoute />,
+        element: <AuthProtectedRoute />,
         children: [
           {
             path: '/',
