@@ -2,10 +2,9 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenManager } from './tokenManager';
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:3000/api',
 });
 
-// --- Request Interceptor ---
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     const token = tokenManager.getToken();
@@ -17,7 +16,6 @@ apiClient.interceptors.request.use(
   (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
 );
 
-// --- Response Interceptor ---
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: unknown) => void; }> = [];
 
@@ -35,7 +33,6 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // We add a custom property to the config, so we should type it
     interface RetryConfig extends InternalAxiosRequestConfig {
         _retry?: boolean;
     }
@@ -45,7 +42,6 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 
-    // Handle 401 Unauthorized for token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
@@ -58,7 +54,6 @@ apiClient.interceptors.response.use(
 
       try {
         console.log("Session expired. Attempting to refresh token...");
-        // Assuming the response shapes for these calls
         const csrfResponse = await axios.get<{ csrfToken: string }>('/api/auth/csrf-token');
         const refreshResponse = await axios.post<{ jwt: string }>('/api/auth/refresh', {}, {
            headers: { 'X-CSRF-TOKEN': csrfResponse.data.csrfToken }
@@ -81,15 +76,6 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
       }
     }
-    
-    // // Global error logging for other statuses
-    // if (error.response) {
-    //   const { status } = error.response;
-    //   if (status === 403) console.error("Access Denied (403): User does not have permission.");
-    //   if (status >= 500) console.error(`Server Error (${status}): An error occurred on the server.`);
-    // } else if (error.request) {
-    //   console.error("Network Error: The request was made but no response was received.");
-    // }
 
     return Promise.reject(error);
   }
