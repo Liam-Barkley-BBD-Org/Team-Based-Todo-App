@@ -15,10 +15,8 @@ import { AuthProtectedRoute } from './layouts/ProtectedRoute.tsx';
 const queryClient = new QueryClient({});
 import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
-import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import TwoFactorPage from './pages/TwoFactorPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
-import ProtectedRoute from './components/protected-route.tsx';
 import NotFound from './pages/NotFoundPage.tsx';
 import AddTeamMemberPage from './pages/AddTeamMember.tsx';
 
@@ -31,7 +29,6 @@ const router = createBrowserRouter([
     children: [
       { path: "/login", element: <LoginPage /> },
       { path: "/signup", element: <SignupPage /> },
-      { path: "/reset-password", element: <ForgotPasswordPage /> },
       { path: "/2fa", element: <TwoFactorPage /> },
       { path: "/admin-roles", element: <AdminPage /> },
       {
