@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ArrowLeft, Edit3, Save, X, Clock, User, Calendar, Flag, Trash2 } from "lucide-react"
+import { ArrowLeft, Clock, Edit3, Save, Trash2, User, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { PureAvatar } from "../components/pure-avatar"
 import { PureBadge } from "../components/pure-badge"
 import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
+import { CardContent, PureCard } from "../components/pure-card"
 import { PureTextarea } from "../components/pure-form"
 import { PureInput } from "../components/pure-input"
 import { PureAlertModal } from "../components/pure-modal"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { Link } from "react-router-dom"
 import styles from "../styles/TaskDetailPage.module.css"
 
 // Types

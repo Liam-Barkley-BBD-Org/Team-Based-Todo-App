@@ -1,5 +1,5 @@
+import { Crown, UserCheck, Users } from 'lucide-react';
 import React from 'react';
-import { Crown, Users, UserCheck, UserX } from 'lucide-react';
 
 interface StatsCardProps {
     title: string;

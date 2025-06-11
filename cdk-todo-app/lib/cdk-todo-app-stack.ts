@@ -59,13 +59,13 @@ export class CdkTodoAppStack extends cdk.Stack {
 
 
     if (!process.env.TAKEDOWN) {
-      const generalVpc = new ec2.Vpc(this, 'RdsVpc', {
-        maxAzs: 1,
-        natGateways: 0,
+      const generalVpc = new ec2.Vpc(this, 'generalVpc', {
+        maxAzs: 2,
+        // natGateways: 1,
       });
 
 
-      //FRONT-END STUFF
+      // //FRONT-END STUFF
       execSync('npm i', { cwd: './../client', stdio: 'inherit' });
       execSync('npm run build', { cwd: './../client', stdio: 'inherit' });
 
@@ -83,27 +83,24 @@ export class CdkTodoAppStack extends cdk.Stack {
         cacheControl: [CacheControl.noCache()]
       })
 
-      const cloudFrontFunctionFile: cloudfront.FileCodeOptions = {
-        filePath: path.resolve(__dirname, '../src/cloudFrontProcessing.js')
-      }
-
-      const cloudFrontFunctions = new cloudfront.Function(this, 'BlockByHostFunction', {
-        functionName: 'cloudFrontFunctionProcessing',
-        code: cloudfront.FunctionCode.fromFile(cloudFrontFunctionFile)
-      })
-
       const frontEndDistribution = new Distribution(this, 'bucket-distribution', {
         defaultBehavior: {
           origin: S3BucketOrigin.withOriginAccessControl(toDoAppBucket),
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
-          functionAssociations: [
-            {
-              function: cloudFrontFunctions,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
-            }
-          ]
         },
         defaultRootObject: 'index.html',
+        errorResponses: [
+          {
+            httpStatus: 403,
+            responseHttpStatus: 200,
+            responsePagePath: '/index.html',
+          },
+          {
+            httpStatus: 404,
+            responseHttpStatus: 200,
+            responsePagePath: '/index.html',
+          }
+        ],
         certificate: certificate,
         domainNames: ['app.acceleratedteamproductivity.shop'],
         enableIpv6: false,
@@ -151,7 +148,7 @@ export class CdkTodoAppStack extends cdk.Stack {
         securityGroups: [dbSecurityGroup],
       });
 
-      //BACK-END STUFF
+      // // BACK-END STUFF
       const cluster = new ecs.Cluster(this, 'FargateCluster', {
         vpc: generalVpc,
       });
@@ -161,7 +158,7 @@ export class CdkTodoAppStack extends cdk.Stack {
         cpu: 256,
         memoryLimitMiB: 512,
         desiredCount: 1,
-        publicLoadBalancer: false,
+        publicLoadBalancer: true,
         certificate,
         domainName: 'api.acceleratedteamproductivity.shop',
         domainZone: hostedZone,
@@ -169,9 +166,7 @@ export class CdkTodoAppStack extends cdk.Stack {
         protocol: cdk.aws_elasticloadbalancingv2.ApplicationProtocol.HTTPS,
         redirectHTTP: true,
         taskImageOptions: {
-          image: ecs.ContainerImage.fromAsset('./../server', {
-            assetName: 'todoappserver:latest'
-          }),
+          image: ecs.ContainerImage.fromAsset('./../server', {}),
           containerPort: 3000,
           environment: {
             NODE_ENV: 'production',
@@ -186,6 +181,10 @@ export class CdkTodoAppStack extends cdk.Stack {
           resources: ['*']
         })
       )
+
+      fargateService.taskDefinition.obtainExecutionRole().addManagedPolicy(
+        cdk.aws_iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly')
+      );
     }
   }
 }

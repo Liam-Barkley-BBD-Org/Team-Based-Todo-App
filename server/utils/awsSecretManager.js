@@ -7,7 +7,6 @@ const client = new SecretsManagerClient({
 });
 
 async function getSecretJson(secretName) {
-    if (secretName == 'CdkTodoAppStacktodoapppostg') return null
     let response;
     try {
         response = await client.send(
@@ -22,6 +21,6 @@ async function getSecretJson(secretName) {
     }
     return JSON.parse(response.SecretString)
 }
-export const DBSecret = await getSecretJson('CdkTodoAppStacktodoapppostg')
+export const DBSecret = await getSecretJson('post-gres-db-connection')
 export const JWTSecret = await getSecretJson('jwt-signing-secret')
 export const AESKeySecret = await getSecretJson('aes-256-cbc-key')

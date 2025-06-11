@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User, UserPlus, Check } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
+import { API_URL } from '../utils/hiddenGlobals';
 
 const SignupPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -73,7 +74,7 @@ const SignupPage: React.FC = () => {
         // }, 2000);
 
         try {
-            const response = await fetch("http://localhost:3000/api/auth/register", {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

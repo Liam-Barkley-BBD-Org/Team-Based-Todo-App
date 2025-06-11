@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import {
   CheckCircle,
+  ChevronDown,
   Clock,
+  LogOut,
   Plus,
   Search,
-  ChevronDown,
-  LogOut,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { PureButton } from "../components/pure-button";
-import { PureCard, CardContent } from "../components/pure-card";
+import { CardContent, PureCard } from "../components/pure-card";
 import { PureInput } from "../components/pure-input";
 import { PureSelect } from "../components/pure-select";
 import { PureSidebar } from "../components/pure-sidebar";
-import { Link, useNavigate } from "react-router-dom";
 
 import styles from "../styles/Dashboard.module.css";
 import { API_URL } from "../utils/hiddenGlobals";
@@ -27,7 +27,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [allTasks, setAllTasks] = useState([]);
+  const [allTasks] = useState([]);
 
   const navigate = useNavigate();
 
@@ -58,8 +58,8 @@ export default function Dashboard() {
           allTodos.push(...todos);
         }
 
-        setAllTasks(allTodos);
-        setFilteredTasks(allTodos);
+        // setAllTasks(allTodos);
+        // setFilteredTasks(allTodos);
       } catch (error) {
         console.error("Error loading dashboard:", error);
       }
@@ -72,16 +72,16 @@ export default function Dashboard() {
     let filtered = [...allTasks];
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter((task) => task.status === statusFilter);
+      filtered = filtered.filter((task: any) => task.status === statusFilter);
     }
     if (assigneeFilter !== "all") {
-      filtered = filtered.filter((task) => task.assignee === assigneeFilter);
+      filtered = filtered.filter((task: any) => task.assignee === assigneeFilter);
     }
     if (teamFilter !== "all") {
-      filtered = filtered.filter((task) => task.team === teamFilter);
+      filtered = filtered.filter((task: any) => task.team === teamFilter);
     }
     if (searchQuery) {
-      filtered = filtered.filter((task) =>
+      filtered = filtered.filter((task: any) =>
         task.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -89,13 +89,13 @@ export default function Dashboard() {
     setFilteredTasks(filtered);
   }, [statusFilter, assigneeFilter, teamFilter, searchQuery, allTasks]);
 
-  const getStatusBadge = (status) => {
-    const classMap = {
+  const getStatusBadge = (status: any) => {
+    const classMap: any = {
       open: styles.statusOpen,
       "in-progress": styles.statusInProgress,
       completed: styles.statusCompleted,
     };
-    const labels = {
+    const labels: any = {
       open: "Open",
       "in-progress": "In Progress",
       completed: "Completed",
@@ -108,7 +108,7 @@ export default function Dashboard() {
     );
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: any) => {
     switch (status) {
       case "completed":
         return <CheckCircle size={16} color="#059669" />;
@@ -119,7 +119,7 @@ export default function Dashboard() {
     }
   };
 
-  const getUniqueOptions = (key) => {
+  const getUniqueOptions = (key: any) => {
     const uniqueValues = Array.from(new Set(allTasks.map((task) => task[key])));
     return [
       { value: "all", label: `All ${key[0].toUpperCase() + key.slice(1)}s` },
@@ -230,10 +230,10 @@ export default function Dashboard() {
             📋 Tasks Overview
           </h2>
           <div className={styles.taskGrid}>
-            {filteredTasks.map((task) => (
+            {filteredTasks.map((task: any) => (
               <article key={task.id}>
                 <PureCard onClick={() => navigate(`/task/${task.id}`)}>
-                  <CardContent>
+                  <CardContent className="">
                     <div className={styles.taskContent}>
                       <div className={styles.taskLeft}>
                         {getStatusIcon(task.status)}

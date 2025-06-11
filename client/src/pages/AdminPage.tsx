@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Shield, Settings } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import type { User } from '../types/user';
 import { UserCard } from '../components/user-card';
 import { SearchAndFilter } from '../components/search-and-filter';
@@ -93,7 +93,7 @@ const AdminPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>(mockUsers);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<'all' | 'team_member' | 'team_leader'>('all');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [statusFilter] = useState<'all' | 'active' | 'inactive'>('all');
     const [toast, setToast] = useState({ isVisible: false, message: '' });
 
     const filteredUsers = useMemo(() => {

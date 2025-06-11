@@ -1,5 +1,5 @@
+import { Calendar, Clock, Crown, MoreVertical, Users } from 'lucide-react';
 import React from 'react';
-import { User, Crown, Users, Calendar, Clock, MoreVertical } from 'lucide-react';
 import type { User as UserType } from '../types/user';
 
 interface UserCardProps {

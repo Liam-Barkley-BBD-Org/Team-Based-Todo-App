@@ -1,7 +1,6 @@
+import { Eye, EyeOff, Lock, LogIn, User } from 'lucide-react';
 import React, { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, LogIn } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/hiddenGlobals';
 
 const LoginPage: React.FC = () => {

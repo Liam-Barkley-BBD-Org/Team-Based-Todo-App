@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Plus, ArrowLeft, FileText, Save } from "lucide-react";
-import { PureBadge } from "../components/pure-badge";
+import { ArrowLeft, FileText, Save } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { PureButton } from "../components/pure-button";
-import { PureCard, CardContent } from "../components/pure-card";
+import { CardContent, PureCard } from "../components/pure-card";
 import { PureLabel, PureTextarea } from "../components/pure-form";
 import { PureInput } from "../components/pure-input";
 import { PureSelect } from "../components/pure-select";
 import { PureSidebar } from "../components/pure-sidebar";
-import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/CreateTaskPage.module.css";
 import { API_URL } from "../utils/hiddenGlobals";
 
@@ -19,7 +18,7 @@ interface OptionType {
 }
 
 export default function CreateTaskPage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isClient, setIsClient] = useState(false);
   const [teams, setTeams] = useState<OptionType[]>([]);
   const [users, setUsers] = useState<OptionType[]>([]);
@@ -152,14 +151,14 @@ export default function CreateTaskPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed": return { backgroundColor: "#dcfce7", color: "#166534" };
-      case "in-progress": return { backgroundColor: "#dbeafe", color: "#1e40af" };
-      case "open":
-      default: return { backgroundColor: "#f3f4f6", color: "#6b7280" };
-    }
-  };
+  // const getStatusColor = (status: string) => {
+  //   switch (status) {
+  //     case "completed": return { backgroundColor: "#dcfce7", color: "#166534" };
+  //     case "in-progress": return { backgroundColor: "#dbeafe", color: "#1e40af" };
+  //     case "open":
+  //     default: return { backgroundColor: "#f3f4f6", color: "#6b7280" };
+  //   }
+  // };
 
   if (!isClient) return <div>Loading...</div>;
 

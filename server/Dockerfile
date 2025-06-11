@@ -1,5 +1,5 @@
 # Use official Node.js image as the base
-FROM node:22
+FROM node:22-slim AS builder
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -8,13 +8,13 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
-RUN npm install --production
+RUN npm ci --omit=dev
 
 # Copy the rest of the app's source code
 COPY . .
 
-# Expose the port your app runs on
+FROM node:22-slim
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app ./
 EXPOSE 3000
-
-# Start the app
 CMD ["node", "server.js"]

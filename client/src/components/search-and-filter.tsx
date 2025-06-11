@@ -1,5 +1,5 @@
+import { Search } from 'lucide-react';
 import React from 'react';
-import { Search, Filter, Users, Crown } from 'lucide-react';
 
 interface SearchAndFilterProps {
     searchTerm: string;
