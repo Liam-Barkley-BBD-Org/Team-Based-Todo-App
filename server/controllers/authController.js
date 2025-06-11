@@ -127,41 +127,46 @@ const verify2FA = async (req, res, next) => {
         status = HTTP_STATUS.UNAUTHORIZED;
         response = { success: false, message: "Not logged in" };
       } else {
-        const secret = decrypt(userauth.encrypted_2fa_secret);
-        const verified = speakeasy.totp.verify({
-          secret: secret,
-          encoding: "base32",
-          token: userToken,
-          window: 1,
-        });
-        if (verified) {
-          const user = await getUserById(req.user.id);
-          const userRoles = await getUserRolesByUserId(user.id);
-          const roles = userRoles.map((r) => r.role_name);
-          const refreshToken = await createRefreshToken({
-            userId: user.id,
-            expires: Date.now() + ONE_WEEK,
+        if (userauth.encrypted_2fa_secret) {
+          const secret = decrypt(userauth.encrypted_2fa_secret);
+          const verified = speakeasy.totp.verify({
+            secret: secret,
+            encoding: "base32",
+            token: userToken,
+            window: 1,
           });
-          res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            maxAge: ONE_WEEK,
-          });
-          const newToken = signJwt({
-            sub: user.id,
-            roles,
-            scope: "full_access",
-          });
-          status = HTTP_STATUS.OK;
-          response = {
-            success: true,
-            message: "2FA verified",
-            token: newToken,
-          };
+          if (verified) {
+            const user = await getUserById(req.user.id);
+            const userRoles = await getUserRolesByUserId(user.id);
+            const roles = userRoles.map((r) => r.role_name);
+            const refreshToken = await createRefreshToken({
+              userId: user.id,
+              expires: Date.now() + ONE_WEEK,
+            });
+            res.cookie("refreshToken", refreshToken, {
+              httpOnly: true,
+              secure: true,
+              sameSite: "strict",
+              maxAge: ONE_WEEK,
+            });
+            const newToken = signJwt({
+              sub: user.id,
+              roles,
+              scope: "full_access",
+            });
+            status = HTTP_STATUS.OK;
+            response = {
+              success: true,
+              message: "2FA verified",
+              token: newToken,
+            };
+          } else {
+            status = HTTP_STATUS.OK;
+            response = { success: false, message: "Invalid 2FA code" };
+          }
         } else {
-          status = HTTP_STATUS.OK;
-          response = { success: false, message: "Invalid 2FA code" };
+          status = HTTP_STATUS.BAD_REQUEST;
+          response = { success: false, message: "2FA not set-up" };
         }
       }
     }
