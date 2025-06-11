@@ -124,8 +124,8 @@ const verify2FA = async (req, res, next) => {
       const { token: userToken } = req.body;
       const userauth = await getUserAuthDetailsById(req.user.id);
       if (!userauth) {
-        status = HTTP_STATUS.UNAUTHORIZED;
-        response = { success: false, message: "Not logged in" };
+        status = HTTP_STATUS.NOT_FOUND;
+        response = { success: false, message: "User not found" };
       } else {
         if (userauth.encrypted_2fa_secret) {
           const secret = decrypt(userauth.encrypted_2fa_secret);
