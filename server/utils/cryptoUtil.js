@@ -2,20 +2,34 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
 
-const algorithm = process.env.ENCRYPTION_ALGORITHM || "aes-256-cbc";
+const algorithm = "aes-256-gcm";
 const key = Buffer.from(process.env.ENCRYPTION_KEY, "utf8");
-const iv = Buffer.from(process.env.ENCRYPTION_IV, "utf8");
 
 export function encrypt(text) {
+  const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return encrypted;
+
+  const encrypted = Buffer.concat([
+    cipher.update(text, "utf8"),
+    cipher.final(),
+  ]);
+
+  const authTag = cipher.getAuthTag();
+  return Buffer.concat([iv, authTag, encrypted]).toString("base64");
 }
 
-export function decrypt(encryptedText) {
+export function decrypt(encryptedBase64) {
+  const data = Buffer.from(encryptedBase64, "base64");
+  const iv = Uint8Array.prototype.slice.call(data, 0, 12);
+  const authTag = Uint8Array.prototype.slice.call(data, 12, 28);
+  const encryptedText = Uint8Array.prototype.slice.call(data, 28);
+
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
-  let decrypted = decipher.update(encryptedText, "hex", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
+  decipher.setAuthTag(authTag);
+
+  const decrypted = Buffer.concat([
+    decipher.update(encryptedText),
+    decipher.final(),
+  ]);
+  return decrypted.toString("utf8");
 }
