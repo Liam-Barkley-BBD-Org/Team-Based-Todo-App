@@ -301,7 +301,7 @@ export function PureSidebar({ children }: SidebarProps) {
         <div style={footerStyle}>
           <Link to="/create-team" style={footerButtonStyle}>
             <Plus size={16} />
-            Join / Create Team
+            Create Team
           </Link>
         </div>
       </div>

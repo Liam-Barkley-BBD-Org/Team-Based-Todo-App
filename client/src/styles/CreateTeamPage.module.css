@@ -1,0 +1,201 @@
+.header {
+    display: flex;
+    height: 64px;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 16px;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: #374151;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.main {
+    flex: 1;
+    padding: 24px;
+}
+
+.container {
+    max-width: 512px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.headerText {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 24px;
+}
+
+.formGroup {
+    margin-bottom: 24px;
+}
+
+.emailInputContainer {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.emailInputWrapper {
+    position: relative;
+    flex: 1;
+}
+
+.emailIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+}
+
+.emailList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.emailItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.emailItemLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.removeButton {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.removeButton:hover {
+    background-color: #dc2626;
+    color: white;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 32px;
+    color: #6b7280;
+}
+
+.infoBox {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.infoTitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e40af;
+    margin: 0 0 8px 0;
+}
+
+.infoList {
+    font-size: 14px;
+    color: #1e40af;
+    margin: 0;
+    padding-left: 16px;
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #111827;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.toastHidden {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+
+.createButton {
+    width: 100%;
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.spin {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

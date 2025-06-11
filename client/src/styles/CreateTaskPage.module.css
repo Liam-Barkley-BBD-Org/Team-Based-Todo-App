@@ -1,0 +1,191 @@
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.header {
+    display: flex;
+    height: 64px;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 16px;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: #374151;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.main {
+    flex: 1;
+    padding: 24px;
+}
+
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.headerText {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.error {
+    font-size: 14px;
+    color: #dc2626;
+    margin-top: 4px;
+}
+
+.tagInputContainer {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tagsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background-color: #e0e7ff;
+    color: #3730a3;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.removeTagButton {
+    background-color: transparent;
+    border: none;
+    color: #3730a3;
+    cursor: pointer;
+    padding: 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.preview {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.previewTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+.previewItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.previewLabel {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.previewValue {
+    font-size: 14px;
+    color: #111827;
+}
+
+.buttonContainer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 16px;
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #111827;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.toastHidden {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.creatingSpinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}

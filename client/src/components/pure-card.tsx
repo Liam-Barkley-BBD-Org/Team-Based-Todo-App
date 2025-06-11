@@ -35,11 +35,11 @@ export function PureCard({ children, onClick, style = {} }: CardProps) {
   )
 }
 
-export function CardContent({ children, style = {} }: { children: React.ReactNode; style?: React.CSSProperties }) {
+export function CardContent({ children, style = {}, className = "" }: { children: React.ReactNode; style?: React.CSSProperties, className: string }) {
   const contentStyle: React.CSSProperties = {
     padding: "16px",
     ...style,
   }
 
-  return <div style={contentStyle}>{children}</div>
+  return <div className={className} style={contentStyle}>{children}</div>
 }

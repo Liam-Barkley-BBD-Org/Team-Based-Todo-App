@@ -44,10 +44,15 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
+<<<<<<< HEAD
             const response = await fetch(`${API_URL}/api/auth/login`, {
+=======
+            const response = await fetch("http://localhost:3000/api/auth/login", {
+>>>>>>> origin/frontend
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
                 },
                 body: JSON.stringify({ ...formData })
             });
@@ -72,20 +77,22 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <main className="min-h-screen flex items-center justify-center p-4">
+            <section className="w-full max-w-md" aria-labelledby="login-title">
                 {/* Header */}
-                <div className="text-center mb-8">
+                <header className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
                         <LogIn className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
+                    <h1 id="login-title" className="text-3xl font-bold text-gray-900 mb-2">
+                        Welcome back
+                    </h1>
                     <p className="text-gray-600">Sign in to your account to continue</p>
-                </div>
+                </header>
 
                 {/* Login Form */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <article className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                    <form onSubmit={handleSubmit} className="space-y-6" aria-label="Login form">
                         {/* Username Field */}
                         <div>
                             <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -101,13 +108,15 @@ const LoginPage: React.FC = () => {
                                     name="username"
                                     value={formData.username}
                                     onChange={handleInputChange}
+                                    placeholder="Enter your username"
                                     className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.username ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
                                         }`}
-                                    placeholder="Enter your username"
+                                    aria-invalid={!!errors.username}
+                                    aria-describedby={errors.username ? 'username-error' : undefined}
                                 />
                             </div>
                             {errors.username && (
-                                <p className="mt-2 text-sm text-red-600 flex items-center">
+                                <p id="username-error" className="mt-2 text-sm text-red-600 flex items-center">
                                     <span className="w-4 h-4 mr-1">⚠</span>
                                     {errors.username}
                                 </p>
@@ -129,14 +138,17 @@ const LoginPage: React.FC = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
+                                    placeholder="Enter your password"
                                     className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
                                         }`}
-                                    placeholder="Enter your password"
+                                    aria-invalid={!!errors.password}
+                                    aria-describedby={errors.password ? 'password-error' : undefined}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-blue-600 transition-colors"
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 >
                                     {showPassword ? (
                                         <EyeOff className="h-5 w-5 text-gray-400" />
@@ -146,7 +158,7 @@ const LoginPage: React.FC = () => {
                                 </button>
                             </div>
                             {errors.password && (
-                                <p className="mt-2 text-sm text-red-600 flex items-center">
+                                <p id="password-error" className="mt-2 text-sm text-red-600 flex items-center">
                                     <span className="w-4 h-4 mr-1">⚠</span>
                                     {errors.password}
                                 </p>
@@ -181,9 +193,9 @@ const LoginPage: React.FC = () => {
                     </form>
 
                     {/* Sign Up Link */}
-                    <div className="mt-8 text-center">
+                    <footer className="mt-8 text-center">
                         <p className="text-gray-600">
-                            Don't have an account?{' '}
+                            Don&apos;t have an account?{' '}
                             <Link
                                 to="/signup"
                                 className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
@@ -191,10 +203,10 @@ const LoginPage: React.FC = () => {
                                 Sign up
                             </Link>
                         </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </footer>
+                </article>
+            </section>
+        </main>
     );
 };
 

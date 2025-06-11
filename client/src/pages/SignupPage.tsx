@@ -65,12 +65,40 @@ const SignupPage: React.FC = () => {
 
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
+        // // Simulate API call
+        // setTimeout(() => {
+        //     setIsLoading(false);
+        //     console.log('Signup attempt:', formData);
+        //     // Handle signup logic here
+        // }, 2000);
+
+        try {
+            const response = await fetch("http://localhost:3000/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ ...formData })
+            });
+
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Login failed");
+            }
+
+            // const data = await response.json();
+            // localStorage.setItem("authToken", data.token);
+            // alert("Login successful");
+        }
+        catch (err: any) {
+            //TODO
+            setErrors(err.message)
+        }
+        finally {
             setIsLoading(false);
-            console.log('Signup attempt:', formData);
-            // Handle signup logic here
-        }, 2000);
+        }
     };
 
     const getStrengthColor = (score: number) => {
@@ -90,21 +118,21 @@ const SignupPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <main className="min-h-screen flex items-center justify-center p-4">
+            <section className="w-full max-w-md" aria-labelledby="signup-title">
                 {/* Header */}
-                <div className="text-center mb-8">
+                <header className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-2xl mb-4 shadow-lg">
                         <UserPlus className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Create account</h1>
+                    <h1 id="signup-title" className="text-3xl font-bold text-gray-900 mb-2">Create account</h1>
                     <p className="text-gray-600">Sign up to get started with your new account</p>
-                </div>
+                </header>
 
                 {/* Signup Form */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Username Field */}
+                <article className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                    <form onSubmit={handleSubmit} className="space-y-6" aria-label="Signup form">
+                        {/* Username */}
                         <div>
                             <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
                                 Username
@@ -114,14 +142,15 @@ const SignupPage: React.FC = () => {
                                     <User className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
-                                    type="text"
                                     id="username"
                                     name="username"
+                                    type="text"
                                     value={formData.username}
                                     onChange={handleInputChange}
-                                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${errors.username ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
-                                        }`}
+                                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${errors.username ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'}`}
                                     placeholder="Choose a username"
+                                    aria-invalid={!!errors.username}
+                                    aria-describedby={errors.username ? "username-error" : undefined}
                                 />
                                 {formData.username.length >= 3 && !errors.username && (
                                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -130,14 +159,14 @@ const SignupPage: React.FC = () => {
                                 )}
                             </div>
                             {errors.username && (
-                                <p className="mt-2 text-sm text-red-600 flex items-center">
+                                <p id="username-error" className="mt-2 text-sm text-red-600 flex items-center">
                                     <span className="w-4 h-4 mr-1">⚠</span>
                                     {errors.username}
                                 </p>
                             )}
                         </div>
 
-                        {/* Password Field */}
+                        {/* Password */}
                         <div>
                             <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                                 Password
@@ -147,33 +176,31 @@ const SignupPage: React.FC = () => {
                                     <Lock className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
-                                    type={showPassword ? 'text' : 'password'}
                                     id="password"
                                     name="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={handleInputChange}
-                                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
-                                        }`}
+                                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'}`}
                                     placeholder="Create a strong password"
+                                    aria-invalid={!!errors.password}
+                                    aria-describedby={errors.password ? "password-error" : undefined}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-green-600 transition-colors"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
-                                    {showPassword ? (
-                                        <EyeOff className="h-5 w-5 text-gray-400" />
-                                    ) : (
-                                        <Eye className="h-5 w-5 text-gray-400" />
-                                    )}
+                                    {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
                                 </button>
                             </div>
 
-                            {/* Password Strength Indicator */}
+                            {/* Password Strength */}
                             {passwordStrength && (
-                                <div className="mt-3">
-                                    <div className="flex space-x-1 mb-2">
-                                        {[0, 1, 2, 3, 4].map((index) => (
+                                <div className="mt-3" aria-live="polite">
+                                    <div className="flex space-x-1 mb-2" role="presentation">
+                                        {[0, 1, 2, 3, 4].map(index => (
                                             <div
                                                 key={index}
                                                 className={`h-2 flex-1 rounded-full transition-all duration-300 ${index <= passwordStrength.score
@@ -184,9 +211,14 @@ const SignupPage: React.FC = () => {
                                         ))}
                                     </div>
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className={`font-medium ${passwordStrength.score >= 3 ? 'text-green-600' :
-                                            passwordStrength.score >= 2 ? 'text-yellow-600' : 'text-red-600'
-                                            }`}>
+                                        <span
+                                            className={`font-medium ${passwordStrength.score >= 3
+                                                ? 'text-green-600'
+                                                : passwordStrength.score >= 2
+                                                    ? 'text-yellow-600'
+                                                    : 'text-red-600'
+                                                }`}
+                                        >
                                             {getStrengthText(passwordStrength.score)}
                                         </span>
                                         {passwordStrength.feedback.warning && (
@@ -197,16 +229,15 @@ const SignupPage: React.FC = () => {
                                     </div>
                                 </div>
                             )}
-
                             {errors.password && (
-                                <p className="mt-2 text-sm text-red-600 flex items-center">
+                                <p id="password-error" className="mt-2 text-sm text-red-600 flex items-center">
                                     <span className="w-4 h-4 mr-1">⚠</span>
                                     {errors.password}
                                 </p>
                             )}
                         </div>
 
-                        {/* Confirm Password Field */}
+                        {/* Confirm Password */}
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
                                 Confirm Password
@@ -216,25 +247,23 @@ const SignupPage: React.FC = () => {
                                     <Lock className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
                                     id="confirmPassword"
                                     name="confirmPassword"
+                                    type={showConfirmPassword ? 'text' : 'password'}
                                     value={formData.confirmPassword}
                                     onChange={handleInputChange}
-                                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
-                                        }`}
+                                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'}`}
                                     placeholder="Confirm your password"
+                                    aria-invalid={!!errors.confirmPassword}
+                                    aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-green-600 transition-colors"
+                                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                                 >
-                                    {showConfirmPassword ? (
-                                        <EyeOff className="h-5 w-5 text-gray-400" />
-                                    ) : (
-                                        <Eye className="h-5 w-5 text-gray-400" />
-                                    )}
+                                    {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
                                 </button>
                                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
                                     <div className="absolute inset-y-0 right-8 pr-3 flex items-center">
@@ -243,14 +272,14 @@ const SignupPage: React.FC = () => {
                                 )}
                             </div>
                             {errors.confirmPassword && (
-                                <p className="mt-2 text-sm text-red-600 flex items-center">
+                                <p id="confirmPassword-error" className="mt-2 text-sm text-red-600 flex items-center">
                                     <span className="w-4 h-4 mr-1">⚠</span>
                                     {errors.confirmPassword}
                                 </p>
                             )}
                         </div>
 
-                        {/* Submit Button */}
+                        {/* Submit */}
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -267,8 +296,8 @@ const SignupPage: React.FC = () => {
                         </button>
                     </form>
 
-                    {/* Sign In Link */}
-                    <div className="mt-8 text-center">
+                    {/* Sign In */}
+                    <footer className="mt-8 text-center">
                         <p className="text-gray-600">
                             Already have an account?{' '}
                             <Link
@@ -278,10 +307,10 @@ const SignupPage: React.FC = () => {
                                 Sign in
                             </Link>
                         </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </footer>
+                </article>
+            </section>
+        </main>
     );
 };
 

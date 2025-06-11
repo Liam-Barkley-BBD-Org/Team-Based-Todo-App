@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { ArrowLeft, Edit3, Save, X, Clock, User, Calendar, Flag, Trash2 } from "lucide-react"
 import { PureAvatar } from "../components/pure-avatar"
@@ -14,6 +12,7 @@ import { PureAlertModal } from "../components/pure-modal"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
 import { Link } from "react-router-dom"
+import styles from "../styles/TaskDetailPage.module.css"
 
 // Types
 type TaskStatus = "open" | "in-progress" | "completed"
@@ -63,20 +62,6 @@ const mockTask: Task = {
   },
 }
 
-const teams = [
-  { value: "alpha", label: "Team Alpha" },
-  { value: "beta", label: "Team Beta" },
-  { value: "gamma", label: "Team Gamma" },
-]
-
-const users = [
-  { value: "", label: "Unassigned" },
-  { value: "1", label: "Alice Johnson" },
-  { value: "2", label: "Bob Smith" },
-  { value: "3", label: "Charlie Brown" },
-  { value: "4", label: "Diana Prince" },
-]
-
 const priorities = [
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
@@ -115,25 +100,6 @@ export default function TaskDetailPage() {
       hour: "2-digit",
       minute: "2-digit",
     })
-  }
-
-  const formatDateShort = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  const getPriorityColor = (priority: TaskPriority) => {
-    switch (priority) {
-      case "high":
-        return { backgroundColor: "#fee2e2", color: "#dc2626" }
-      case "medium":
-        return { backgroundColor: "#fef3c7", color: "#d97706" }
-      case "low":
-        return { backgroundColor: "#f3f4f6", color: "#6b7280" }
-    }
   }
 
   const getStatusColor = (status: TaskStatus) => {
@@ -193,139 +159,25 @@ export default function TaskDetailPage() {
     return <div>Loading...</div>
   }
 
-  const headerStyle: React.CSSProperties = {
-    display: "flex",
-    height: "64px",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottom: "1px solid #e5e7eb",
-    padding: "0 16px",
-  }
-
-  const backButtonStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "4px 8px",
-    fontSize: "14px",
-    color: "#374151",
-    backgroundColor: "transparent",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    textDecoration: "none",
-    transition: "background-color 0.2s ease",
-  }
-
-  const mainStyle: React.CSSProperties = {
-    flex: 1,
-    padding: "24px",
-    display: "flex",
-    gap: "24px",
-  }
-
-  const leftColumnStyle: React.CSSProperties = {
-    flex: 2,
-    display: "flex",
-    flexDirection: "column",
-    gap: "24px",
-  }
-
-  const rightColumnStyle: React.CSSProperties = {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "24px",
-  }
-
-  const titleSectionStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: "16px",
-    marginBottom: "16px",
-  }
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: "28px",
-    fontWeight: "bold",
-    color: "#111827",
-    margin: 0,
-    lineHeight: "1.2",
-  }
-
-  const metaRowStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    flexWrap: "wrap",
-    marginBottom: "16px",
-  }
-
-  const metaItemStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    fontSize: "14px",
-    color: "#6b7280",
-  }
-
-  const descriptionStyle: React.CSSProperties = {
-    fontSize: "16px",
-    lineHeight: "1.6",
-    color: "#374151",
-    margin: 0,
-  }
-
-  const sidebarSectionStyle: React.CSSProperties = {
-    marginBottom: "16px",
-  }
-
-  const sidebarLabelStyle: React.CSSProperties = {
-    fontSize: "14px",
-    fontWeight: "500",
-    color: "#374151",
-    marginBottom: "8px",
-    display: "block",
-  }
-
-  const editFormStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  }
-
-  const buttonGroupStyle: React.CSSProperties = {
-    display: "flex",
-    gap: "8px",
-  }
-
-  const toastStyle: React.CSSProperties = {
-    position: "fixed",
-    top: "20px",
-    right: "20px",
-    backgroundColor: "#111827",
-    color: "white",
-    padding: "12px 16px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    zIndex: 1000,
-    opacity: toastMessage ? 1 : 0,
-    transform: toastMessage ? "translateY(0)" : "translateY(-20px)",
-    transition: "all 0.3s ease",
-  }
-
   return (
     <PureSidebar>
       {/* Toast */}
-      <div style={toastStyle}>{toastMessage}</div>
+      <div
+        role="status"
+        className={`${styles.toast} ${toastMessage ? styles.toastVisible : ""}`}
+      >
+        {toastMessage}
+      </div>
 
       {/* Header */}
-      <header style={headerStyle}>
-        <Link to="/dashboard" style={backButtonStyle}>
-          <ArrowLeft size={16} />
-          Back to Tasks
-        </Link>
+      <header className={styles.header}>
+        <nav aria-label="Back navigation">
+          <Link to="/dashboard" className={styles.backButton}>
+            <ArrowLeft size={16} />
+            Back to Tasks
+          </Link>
+        </nav>
+
         <div style={{ display: "flex", gap: "8px" }}>
           {!isEditing ? (
             <>
@@ -333,7 +185,10 @@ export default function TaskDetailPage() {
                 <Edit3 size={16} style={{ marginRight: "8px" }} />
                 Edit
               </PureButton>
-              <PureButton variant="secondary" onClick={() => setDeleteDialogOpen(true)}>
+              <PureButton
+                variant="secondary"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
                 <Trash2 size={16} style={{ marginRight: "8px" }} />
                 Delete
               </PureButton>
@@ -354,150 +209,147 @@ export default function TaskDetailPage() {
       </header>
 
       {/* Main Content */}
-      <main style={mainStyle}>
-        {/* Left Column - Task Details */}
-        <div style={leftColumnStyle}>
+      <main className={styles.main}>
+        {/* Left Column */}
+        <section className={styles.leftColumn}>
           <PureCard>
-            <CardContent>
+            <CardContent className="">
               {!isEditing ? (
                 <>
-                  <div style={titleSectionStyle}>
-                    <h1 style={titleStyle}>{task.title}</h1>
-                  </div>
+                  <header className={styles.titleSection}>
+                    <h1 className={styles.title}>{task.title}</h1>
+                  </header>
 
-                  <div style={metaRowStyle}>
-                    <div style={metaItemStyle}>
+                  <section className={styles.metaRow} aria-label="Task Metadata">
+                    <div className={styles.metaItem}>
                       <User size={16} />
                       <span>Created by {task.createdBy.name}</span>
                     </div>
-                    <div style={metaItemStyle}>
+                    <div className={styles.metaItem}>
                       <Clock size={16} />
                       <span>Created {formatDate(task.createdAt)}</span>
                     </div>
-                    {task.dueDate && (
-                      <div style={metaItemStyle}>
-                        <Calendar size={16} />
-                        <span>Due {formatDateShort(task.dueDate)}</span>
-                      </div>
-                    )}
-                  </div>
+                  </section>
 
-                  <div style={metaRowStyle}>
+                  <section className={styles.metaRow}>
                     <PureBadge style={getStatusColor(task.status)}>
                       {statuses.find((s) => s.value === task.status)?.label}
                     </PureBadge>
-                    <PureBadge style={getPriorityColor(task.priority)}>
-                      <Flag size={12} style={{ marginRight: "4px" }} />
-                      {task.priority} priority
-                    </PureBadge>
-                  </div>
+                  </section>
 
-                  <p style={descriptionStyle}>{task.description}</p>
+                  <p className={styles.description}>{task.description}</p>
                 </>
               ) : (
-                <div style={editFormStyle}>
+                <form className={styles.editForm}>
                   <div>
-                    <label style={sidebarLabelStyle}>Title</label>
+                    <label className={styles.sidebarLabel} htmlFor="title">
+                      Title
+                    </label>
                     <PureInput
+                      id="title"
                       value={editedTask.title}
-                      onChange={(e: { target: { value: any } }) => handleTaskFieldChange("title", e.target.value)}
+                      onChange={(e) =>
+                        handleTaskFieldChange("title", e.target.value)
+                      }
                     />
                   </div>
+
                   <div>
-                    <label style={sidebarLabelStyle}>Description</label>
+                    <label className={styles.sidebarLabel} htmlFor="description">
+                      Description
+                    </label>
                     <PureTextarea
-                      value={editedTask.description}
-                      onChange={(e: { target: { value: any } }) => handleTaskFieldChange("description", e.target.value)}
+                      id="description"
                       rows={6}
+                      value={editedTask.description}
+                      onChange={(e) =>
+                        handleTaskFieldChange("description", e.target.value)
+                      }
                     />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+
+                  <div
+                    style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+                  >
                     <div>
-                      <label style={sidebarLabelStyle}>Status</label>
+                      <label className={styles.sidebarLabel} htmlFor="status">
+                        Status
+                      </label>
                       <PureSelect
                         value={editedTask.status}
-                        onValueChange={(value: any) => handleTaskFieldChange("status", value)}
+                        onValueChange={(value) =>
+                          handleTaskFieldChange("status", value)
+                        }
                         options={statuses}
                       />
                     </div>
+
                     <div>
-                      <label style={sidebarLabelStyle}>Priority</label>
+                      <label className={styles.sidebarLabel} htmlFor="priority">
+                        Priority
+                      </label>
                       <PureSelect
                         value={editedTask.priority}
-                        onValueChange={(value: unknown) => handleTaskFieldChange("priority", value)}
+                        onValueChange={(value) =>
+                          handleTaskFieldChange("priority", value)
+                        }
                         options={priorities}
                       />
                     </div>
                   </div>
-                  <div>
-                    <label style={sidebarLabelStyle}>Due Date</label>
-                    <PureInput
-                      type="date"
-                      value={editedTask.dueDate || ""}
-                      onChange={(e: { target: { value: unknown } }) => handleTaskFieldChange("dueDate", e.target.value)}
-                    />
-                  </div>
-                </div>
+                </form>
               )}
             </CardContent>
           </PureCard>
-        </div>
+        </section>
 
-        <div style={rightColumnStyle}>
+        {/* Right Column - Sidebar Info */}
+        <aside className={styles.rightColumn} aria-label="Task Properties Sidebar">
           <PureCard>
-            <CardContent>
-              <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "16px" }}>Task Properties</h3>
+            <CardContent className="">
+              <h2
+                style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}
+              >
+                Task Properties
+              </h2>
 
-              <div style={sidebarSectionStyle}>
-                <label style={sidebarLabelStyle}>Team</label>
-                <div style={{ fontSize: "14px", color: "#374151" }}>{task.teamName}</div>
-              </div>
+              <section className={styles.sidebarSection}>
+                <label className={styles.sidebarLabel}>Team</label>
+                <div style={{ fontSize: 14, color: "#374151" }}>
+                  {task.teamName}
+                </div>
+              </section>
 
-              <div style={sidebarSectionStyle}>
-                <label style={sidebarLabelStyle}>Assignee</label>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <section className={styles.sidebarSection}>
+                <label className={styles.sidebarLabel}>Assignee</label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {task.assigneeName ? (
                     <>
                       <PureAvatar fallback="BS" size={24} />
-                      <span style={{ fontSize: "14px" }}>{task.assigneeName}</span>
+                      <span style={{ fontSize: 14 }}>{task.assigneeName}</span>
                     </>
                   ) : (
-                    <span style={{ fontSize: "14px", color: "#6b7280" }}>Unassigned</span>
+                    <span style={{ fontSize: 14, color: "#6b7280" }}>Unassigned</span>
                   )}
                 </div>
-              </div>
+              </section>
 
-              <div style={sidebarSectionStyle}>
-                <label style={sidebarLabelStyle}>Status</label>
+              <section className={styles.sidebarSection}>
+                <label className={styles.sidebarLabel}>Status</label>
                 <PureBadge style={getStatusColor(task.status)}>
                   {statuses.find((s) => s.value === task.status)?.label}
                 </PureBadge>
-              </div>
+              </section>
 
-              <div style={sidebarSectionStyle}>
-                <label style={sidebarLabelStyle}>Priority</label>
-                <PureBadge style={getPriorityColor(task.priority)}>{task.priority}</PureBadge>
-              </div>
-
-              {task.dueDate && (
-                <div style={sidebarSectionStyle}>
-                  <label style={sidebarLabelStyle}>Due Date</label>
-                  <div style={{ fontSize: "14px", color: "#374151" }}>{formatDateShort(task.dueDate)}</div>
+              <section className={styles.sidebarSection}>
+                <label className={styles.sidebarLabel}>Created</label>
+                <div style={{ fontSize: 14, color: "#374151" }}>
+                  {formatDate(task.createdAt)}
                 </div>
-              )}
-
-              <div style={sidebarSectionStyle}>
-                <label style={sidebarLabelStyle}>Created</label>
-                <div style={{ fontSize: "14px", color: "#374151" }}>{formatDate(task.createdAt)}</div>
-              </div>
-
-              <div style={sidebarSectionStyle}>
-                <label style={sidebarLabelStyle}>Last Updated</label>
-                <div style={{ fontSize: "14px", color: "#374151" }}>{formatDate(task.updatedAt)}</div>
-              </div>
+              </section>
             </CardContent>
           </PureCard>
-        </div>
+        </aside>
       </main>
 
       {/* Delete Confirmation Modal */}
