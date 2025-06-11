@@ -3,8 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Clock, History, Trash2 } from "lucide-react"
-import { format } from "date-fns"
+import { History, Trash2 } from "lucide-react"
 import { PureBadge } from "./pure-badge"
 import { PureButton } from "./pure-button"
 import { PureTextarea } from "./pure-form"
@@ -78,13 +77,6 @@ export function TaskDetailModal({ task, isOpen, onClose, onSave, onDelete, teams
     })
   }
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "yyyy-MM-dd")
-    } catch (e) {
-      return dateString
-    }
-  }
 
   const getStatusBadge = (status: TaskStatus) => {
     const variants = {

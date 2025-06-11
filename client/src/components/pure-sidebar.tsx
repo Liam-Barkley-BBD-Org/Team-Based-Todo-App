@@ -293,7 +293,7 @@ export function PureSidebar({ children }: SidebarProps) {
           <SidebarItem href="/dashboard" icon={<ListTodo size={16} />} label="My Tasks" isActive={true} />
 
           <SidebarGroup title="Teams">
-            <SidebarItem href="/team/alpha" icon={<span style={{ fontSize: "12px" }}>-</span>} label="Team Alpha" />
+            <SidebarItem href="/team-details" icon={<span style={{ fontSize: "12px" }}>-</span>} label="Team Alpha" />
             <SidebarItem href="/team/beta" icon={<span style={{ fontSize: "12px" }}>-</span>} label="Team Beta" />
           </SidebarGroup>
         </div>
