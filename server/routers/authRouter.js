@@ -20,7 +20,6 @@ import {
   requireAuthSetupScope,
 } from "../middlewares/authMiddleware.js";
 import rateLimit from "express-rate-limit";
-import csurf from "csurf";
 
 const authRouter = express.Router();
 
@@ -29,8 +28,6 @@ const authRateLimiter = rateLimit({
   max: 10,
   message: "Too many attempts, please try again later.",
 });
-
-const csrfProtection = csurf({ cookie: true });
 
 authRouter.post(
   "/login",
@@ -57,10 +54,7 @@ authRouter.post(
   validateMiddleware(createUserSchema, PROPERTIES.BODY),
   register
 );
-authRouter.post("/refresh", authRateLimiter, csrfProtection, refreshToken);
-authRouter.post("/logout", csrfProtection, logout);
-authRouter.get("/csrf-token", csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
+authRouter.post("/refresh", authRateLimiter, refreshToken);
+authRouter.post("/logout", logout);
 
 export { authRouter };
