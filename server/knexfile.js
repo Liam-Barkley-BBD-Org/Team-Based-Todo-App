@@ -4,11 +4,11 @@ import { DBSecret } from "./utils/awsSecretManager.js"
 let knexEnv = {
   client: 'pg',
   connection: {
-    host: 'hostname',
-    port: 1234,
-    database: 'dname',
-    user: 'duser',
-    password: 'dpassword',
+    host: 'localhost',
+    port: 5432,
+    database: 'todoapp',
+    user: 'username',
+    password: 'password',
   }
 }
 

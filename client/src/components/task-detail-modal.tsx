@@ -2,12 +2,13 @@
 
 import type React from "react"
 
-import { History, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { Clock, History, Trash2 } from "lucide-react"
+import { format } from "date-fns"
 import { PureBadge } from "./pure-badge"
 import { PureButton } from "./pure-button"
 import { PureTextarea } from "./pure-form"
-import { PureAlertModal, PureModal } from "./pure-modal"
+import { PureModal, PureAlertModal } from "./pure-modal"
 import { PureSelect } from "./pure-select"
 import { PureSeparator } from "./pure-separator"
 
@@ -75,6 +76,14 @@ export function TaskDetailModal({ task, isOpen, onClose, onSave, onDelete, teams
       if (!prev) return prev
       return { ...prev, [field]: value }
     })
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "yyyy-MM-dd")
+    } catch (e) {
+      return dateString
+    }
   }
 
   const getStatusBadge = (status: TaskStatus) => {
