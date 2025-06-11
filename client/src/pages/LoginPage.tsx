@@ -160,16 +160,6 @@ const LoginPage: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Forgot Password Link */}
-                        <div className="flex justify-end">
-                            <Link
-                                to="/reset-password"
-                                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                            >
-                                Forgot your password?
-                            </Link>
-                        </div>
-
                         {/* Submit Button */}
                         <button
                             type="submit"
