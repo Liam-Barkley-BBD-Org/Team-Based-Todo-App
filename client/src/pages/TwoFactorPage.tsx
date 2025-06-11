@@ -1,19 +1,56 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft, RefreshCw, CheckCircle } from 'lucide-react';
+import { API_URL } from '../utils/hiddenGlobals';
 
 const TwoFactorPage: React.FC = () => {
+    const navigate = useNavigate();
     const [code, setCode] = useState(['', '', '', '', '', '']);
     const [isLoading, setIsLoading] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [error, setError] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
+    const [qrImage, setQrImage] = useState('')
     const [timeLeft, setTimeLeft] = useState(60);
     const [canResend, setCanResend] = useState(false);
 
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-    // Timer for resend functionality
+    const handleGoToDashBoard = () => {
+        navigate('/dashboard')
+    }
+
+    const setupNew2FA = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/auth/2fa/setup`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
+                },
+            });
+
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Login failed");
+            }
+            const data = await response.json();
+            setQrImage(data.qr)
+        }
+
+        catch (err: any) {
+        }
+        finally {
+            setIsLoading(false);
+        }
+    }
+
+    const handleQrCodeScanCompletion = () => {
+        sessionStorage.removeItem('needs2fa');
+        window.location.reload();
+    }
+
     useEffect(() => {
         if (timeLeft > 0 && !canResend) {
             const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -67,6 +104,7 @@ const TwoFactorPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
 
         const fullCode = code.join('');
         if (fullCode.length !== 6) {
@@ -74,24 +112,38 @@ const TwoFactorPage: React.FC = () => {
             return;
         }
 
-        setIsLoading(true);
-        setError('');
+        try {
+            const response = await fetch(`${API_URL}/api/auth/2fa/verify`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,
+                },
+                body: JSON.stringify({
+                    token: fullCode
+                })
+            });
 
-        // // Simulate API call
-        // setTimeout(() => {
-        //     setIsLoading(false);
 
-        //     // Simulate success/failure
-        //     if (fullCode === '123456') {
-        //         setIsSuccess(true);
-        //         console.log('2FA verification successful:', fullCode);
-        //     } else {
-        //         setError('Invalid verification code. Please try again.');
-        //         // Clear the code on error
-        //         setCode(['', '', '', '', '', '']);
-        //         inputRefs.current[0]?.focus();
-        //     }
-        // }, 1500);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Login failed");
+            }
+            const data = await response.json();
+            if (data.success == true) {
+                sessionStorage.setItem('JWT', data.token)
+                setIsSuccess(true)
+            } else {
+                setError('Authentication failed')
+            }
+        }
+
+        catch (err: any) {
+        }
+        finally {
+            setIsLoading(false);
+        }
+
     };
 
     const handleResendCode = async () => {
@@ -112,6 +164,36 @@ const TwoFactorPage: React.FC = () => {
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
+    if (sessionStorage.getItem('needs2fa') === 'true') {
+        if (qrImage == '') {
+            setupNew2FA();
+            return (
+                <main className="min-h-screen flex items-center justify-center p-4" role="main">
+                    Loading
+                </main>
+            );
+        } else {
+            return (
+                <div className="flex flex-col items-center space-y-4">
+                    <h2 className="text-xl font-semibold text-gray-800">Scan this QR Code</h2>
+                    <img
+                        src={qrImage}
+                        alt="2FA QR Code"
+                        className="w-48 h-48 border rounded-lg shadow-md"
+                    />
+                    <p className="text-gray-600 text-sm text-center">
+                        Use an authenticator app (like Google Authenticator or Authy) to scan the QR code.
+                    </p>
+                    <button
+                        onClick={handleQrCodeScanCompletion}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                        Click here when you have finished scanning the QR Code
+                    </button>
+                </div>
+            );
+        }
+    }
 
     if (isSuccess) {
         return (
@@ -143,7 +225,7 @@ const TwoFactorPage: React.FC = () => {
                     </p>
 
                     <button
-                        onClick={() => console.log('Redirect to dashboard')}
+                        onClick={handleGoToDashBoard}
                         className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]"
                     >
                         Continue to Dashboard

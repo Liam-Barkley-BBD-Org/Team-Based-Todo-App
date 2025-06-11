@@ -14,17 +14,14 @@ import TwoFactorPage from './pages/TwoFactorPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 import ProtectedRoute from './components/protected-route.tsx';
 
-// Simulate the logged-in user's ID for now
-const loggedInUserId = "123"; // TODO: Replace with context or auth
-
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
   { path: "/dashboard", element: <Dashboard /> },
   {
     path: "/create-team",
     element: (
-      <ProtectedRoute userId={loggedInUserId} requiredRole="Team Leader">
-        <CreateTeamPage userId={loggedInUserId} />
+      <ProtectedRoute userId={sessionStorage.getItem('UserID') as string} requiredRole="Team Leader">
+        <CreateTeamPage userId={sessionStorage.getItem('UserID') as string} />
       </ProtectedRoute>
     ),
   },

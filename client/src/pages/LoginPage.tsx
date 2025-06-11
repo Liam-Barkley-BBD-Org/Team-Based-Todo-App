@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User, LogIn } from 'lucide-react';
-import { API_URL } from '../App';
+import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../utils/hiddenGlobals';
 
 const LoginPage: React.FC = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -44,15 +46,10 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-<<<<<<< HEAD
             const response = await fetch(`${API_URL}/api/auth/login`, {
-=======
-            const response = await fetch("http://localhost:3000/api/auth/login", {
->>>>>>> origin/frontend
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
                 },
                 body: JSON.stringify({ ...formData })
             });
@@ -64,8 +61,13 @@ const LoginPage: React.FC = () => {
             }
 
             const data = await response.json();
-            localStorage.setItem("authToken", data.token);
-            alert("Login successful");
+            sessionStorage.setItem("authToken", data.token);
+            if (data.needs2FASetup) {
+                sessionStorage.setItem('needs2fa', 'true');
+            }
+            sessionStorage.setItem('userID', formData.username)
+            setIsLoading(false)
+            navigate('/2fa');
         }
         catch (err: any) {
             //TODO
