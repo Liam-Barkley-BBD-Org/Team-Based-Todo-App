@@ -24,6 +24,6 @@ Set the following variables in a .env file (inside "server/")
 - bcrypt: for secure one-way salting and hashing of passwords
 - joi: used for data validation
 - jsonwebtoken: library for creating and verifying JWT tokens
-- qrcode: generates QR codes (used for 2FA setup)
+- qrcode: generates QR codes
 - speakeasy: handles TOTP/HOTP for two-factor authentication
 - csurf: middleware for CSRF protection in Express apps
