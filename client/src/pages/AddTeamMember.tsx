@@ -2,32 +2,32 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { ArrowLeft, UserPlus, Users, Crown, Send, Link, Loader2 } from "lucide-react"
-import "../styles/AddTeamMember.css"
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { AxiosError } from "axios"
-import { useParams, useNavigate } from "react-router-dom"
+import { ArrowLeft, Crown, Link, Loader2, Send, UserPlus, Users } from "lucide-react"
+import { useState } from "react"
+import { useParams } from "react-router-dom"
 import { apiService } from "../api/apiService"
-import { PureSidebar } from "../components/pure-sidebar"
-import type { TeamMembership } from "../type/api.types"
 import { AppLoader } from "../components/app-loader"
+import { PureSidebar } from "../components/pure-sidebar"
+import "../styles/AddTeamMember.css"
+import type { TeamMembership } from "../type/api.types"
 
 const useToast = () => {
-  const [toastMessage, setToastMessage] = useState("");
-  const showToast = (message: string, duration: number = 3000) => {
-    setToastMessage(message);
-    setTimeout(() => setToastMessage(""), duration);
-  };
-  return { toastMessage, showToast };
+    const [toastMessage, setToastMessage] = useState("");
+    const showToast = (message: string, duration: number = 3000) => {
+        setToastMessage(message);
+        setTimeout(() => setToastMessage(""), duration);
+    };
+    return { toastMessage, showToast };
 };
 
 export default function AddTeamMemberPage() {
     const { teamName } = useParams<{ teamName: string }>();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { toastMessage, showToast } = useToast();
-    
+
     // Simplified form state
     const [email, setEmail] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -75,7 +75,7 @@ export default function AddTeamMemberPage() {
     // Derive team info from the fetched memberships data
     const team = memberships?.[0]?.team;
     const owner = memberships?.find(m => m.user.id === m.team.owner_user_id)?.user;
-    
+
     if (isLoading) {
         return <PureSidebar><div><AppLoader /></div></PureSidebar>;
     }

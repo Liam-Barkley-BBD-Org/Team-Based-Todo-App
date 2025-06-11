@@ -1,57 +1,39 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-<<<<<<< HEAD
-import { ArrowLeft, Clock, Edit3, Save, Trash2, User, X } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { PureAvatar } from "../components/pure-avatar"
-import { PureBadge } from "../components/pure-badge"
-import { PureButton } from "../components/pure-button"
-import { CardContent, PureCard } from "../components/pure-card"
-import { PureTextarea } from "../components/pure-form"
-import { PureInput } from "../components/pure-input"
-import { PureAlertModal } from "../components/pure-modal"
-import { PureSelect } from "../components/pure-select"
-import { PureSidebar } from "../components/pure-sidebar"
-import styles from "../styles/TaskDetailPage.module.css"
-=======
 import "../styles/TaskDetailPage.css";
->>>>>>> origin/frontend
 
-import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 import {
   ArrowLeft,
-  Edit3,
-  Save,
-  X,
   Clock,
-  User,
-  Calendar,
-  Flag,
-  Trash2,
+  Edit3,
   Loader2,
+  Save,
   Tag,
+  Trash2,
+  User,
+  X
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { apiService } from "../api/apiService";
+import { AppLoader } from "../components/app-loader";
 import { PureAvatar } from "../components/pure-avatar";
 import { PureBadge } from "../components/pure-badge";
 import { PureButton } from "../components/pure-button";
-import { PureCard, CardContent } from "../components/pure-card";
+import { CardContent, PureCard } from "../components/pure-card";
 import { PureTextarea } from "../components/pure-form";
 import { PureInput } from "../components/pure-input";
 import { PureAlertModal } from "../components/pure-modal";
 import { PureSelect } from "../components/pure-select";
 import { PureSidebar } from "../components/pure-sidebar";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
-import { apiService } from "../api/apiService";
 import type {
-  Todo,
   TeamMembership,
+  Todo,
   UpdateTodoPayload,
 } from "../type/api.types";
-import { AppLoader } from "../components/app-loader";
 
 const useToast = () => {
   const [toastMessage, setToastMessage] = useState("");
@@ -221,7 +203,7 @@ export default function TaskDetailPage() {
         <main className="task-detail-main">
           <article className="task-detail-content">
             <PureCard>
-              <CardContent>
+              <CardContent className="">
                 {!isEditing ? (
                   <section aria-labelledby="task-title">
                     <h1 id="task-title" className="task-detail-content__title">
@@ -274,7 +256,7 @@ export default function TaskDetailPage() {
 
           <aside className="task-detail-sidebar">
             <PureCard>
-              <CardContent>
+              <CardContent className="">
                 <h3
                   style={{
                     fontSize: "16px",
@@ -352,8 +334,8 @@ export default function TaskDetailPage() {
         description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
-        isDestructive={true}
-        isConfirming={deleteTaskMutation.isPending}
+      // isDestructive={true}
+      // isConfirming={deleteTaskMutation.isPending}
       />
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </PureSidebar>

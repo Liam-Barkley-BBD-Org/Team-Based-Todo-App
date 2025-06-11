@@ -26,6 +26,7 @@ export function PageHeader() {
             navigate('/login');
         },
         onError: (err) => {
+            console.error(err)
             tokenManager.deleteToken();
             navigate('/login');
         }

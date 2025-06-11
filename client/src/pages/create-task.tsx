@@ -1,22 +1,22 @@
 "use client";
 
-import type React from "react"
+import type React from "react";
 import "../styles/CreateTaskPage.css";
 
-import { useState, useEffect, useMemo } from "react"
-import { ArrowLeft, FileText, Save, Loader2 } from "lucide-react"
-import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
-import { PureLabel, PureTextarea } from "../components/pure-form"
-import { PureInput } from "../components/pure-input"
-import { PureSelect } from "../components/pure-select"
-import { PureSidebar } from "../components/pure-sidebar"
-import { Link, useLocation, useNavigate } from "react-router-dom"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import type { AxiosError } from "axios"
-import { apiService } from "../api/apiService"
-import { useAuth } from "../hooks/useAuth"
-import type { TeamMembership, NewTodoPayload } from "../type/api.types"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { ArrowLeft, FileText, Loader2, Save } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { apiService } from "../api/apiService";
+import { PureButton } from "../components/pure-button";
+import { CardContent, PureCard } from "../components/pure-card";
+import { PureLabel, PureTextarea } from "../components/pure-form";
+import { PureInput } from "../components/pure-input";
+import { PureSelect } from "../components/pure-select";
+import { PureSidebar } from "../components/pure-sidebar";
+import { useAuth } from "../hooks/useAuth";
+import type { NewTodoPayload, TeamMembership } from "../type/api.types";
 
 
 const useToast = () => {
@@ -137,7 +137,7 @@ export default function CreateTaskPage() {
 
             <form onSubmit={handleSubmit} className="create-task-form" noValidate>
               <PureCard>
-                <CardContent>
+                <CardContent className="">
                   <h2 className="create-task-form__card-header"><FileText size={20} /> Task Details</h2>
                   <div className="create-task-form__group">
                     <PureLabel htmlFor="title">Task Title *</PureLabel>
@@ -157,7 +157,7 @@ export default function CreateTaskPage() {
                     </div>
                     <div className="create-task-form__group">
                       <PureLabel>Assignee</PureLabel>
-                      <PureSelect value={formData.assigned_to_username || ''} onValueChange={(v) => handleInputChange("assigned_to_username", v || null)} options={assigneeOptions} placeholder="Select assignee" disabled={isLoadingTeamMembers || !formData.teamname} />
+                      <PureSelect value={formData.assigned_to_username || ''} onValueChange={(v) => handleInputChange("assigned_to_username", v || null)} options={assigneeOptions} placeholder="Select assignee" />
                     </div>
                   </div>
                 </CardContent>

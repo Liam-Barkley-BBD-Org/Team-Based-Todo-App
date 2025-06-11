@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Shield, Settings, UserPlus } from 'lucide-react';
-import type { User } from '../types/user';
-import { UserCard } from '../components/user-card';
+import { Shield, UserPlus } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import { SearchAndFilter } from '../components/search-and-filter';
 import { StatsOverview } from '../components/stats-card';
 import { Toast } from '../components/toast';
+import { UserCard } from '../components/user-card';
+import type { User } from '../types/user';
 // import { v4 as uuidv4 } from 'uuid'; // for generating unique IDs
 
 export const mockUsers: User[] = [/* your mock data here */];

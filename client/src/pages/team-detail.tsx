@@ -1,26 +1,20 @@
 "use client"
 
 
-<<<<<<< HEAD
-import { ArrowLeft, CheckCircle, Clock, Crown, Link, Plus, UserPlus } from "lucide-react"
-import { useState } from "react"
-=======
+import { useQuery } from "@tanstack/react-query"
+import type { AxiosError } from "axios"
+import { ArrowLeft, CheckCircle, Clock, Crown, Plus, UserPlus } from "lucide-react"
 import { useMemo, useState } from "react"
-import { CheckCircle, Clock, Plus, ArrowLeft, UserPlus, Crown } from "lucide-react"
->>>>>>> origin/frontend
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { apiService } from "../api/apiService"
+import { AppLoader } from "../components/app-loader"
 import { PureAvatar } from "../components/pure-avatar"
 import { PureButton } from "../components/pure-button"
 import { CardContent, PureCard } from "../components/pure-card"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { useQueryClient, useQuery } from "@tanstack/react-query"
-import type { AxiosError } from "axios"
-import { useParams, useNavigate, Link } from "react-router-dom"
-import { apiService } from "../api/apiService"
 import { useAuth } from "../hooks/useAuth"
 import type { TeamMembership, Todo } from "../type/api.types"
-import { AppLoader } from "../components/app-loader"
-import { TaskDetailModal } from "../components/task-detail-modal"
 
 
 const useToast = () => {
@@ -36,7 +30,7 @@ export default function TeamView() {
   // --- Hooks and State ---
   const { teamName } = useParams<{ teamName: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const { user, roles } = useAuth();
   const { toastMessage } = useToast();
 
@@ -45,6 +39,9 @@ export default function TeamView() {
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  isTaskModalOpen
+  selectedTask
+  user
 
   const canManageMembers = roles.includes('TEAM_LEAD');
 
@@ -75,11 +72,11 @@ export default function TeamView() {
       filtered = filtered.filter((task) => (statusFilter === 'open' ? task.is_open : !task.is_open));
     }
     if (userFilter !== "all") {
-      filtered = filtered.filter((task) => userFilter === "unassigned" ? !task.assigned_to_username : task.assigned_to_username === userFilter);
+      filtered = filtered.filter((task: any) => userFilter === "unassigned" ? !task.assigned_to_user : task.assigned_to_user === userFilter);
     }
-    filtered.sort((a, b) => {
+    filtered.sort((a: any, b) => {
       if (sortBy === 'created_at') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (sortBy === 'assignee') return (a.assigned_to_username || 'Z').localeCompare(b.assigned_to_username || 'Z');
+      if (sortBy === 'assignee') return (a.assigned_to_user || 'Z').localeCompare(b.assigned_to_user || 'Z');
       return 0;
     });
     return filtered;
@@ -139,7 +136,7 @@ export default function TeamView() {
       </header>
       <main style={mainStyle}>
         <PureCard>
-          <CardContent>
+          <CardContent className="">
             <div style={teamHeaderStyle}>
               <div>
                 <h1 style={teamTitleStyle}>Team: {teamName}</h1>
@@ -180,13 +177,13 @@ export default function TeamView() {
           </div>
           <PureCard>
             <div style={taskListStyle}>
-              {filteredAndSortedTasks.map((task, index) => (
+              {filteredAndSortedTasks.map((task: any, index) => (
                 <div key={task.todoId} style={{ ...taskItemStyle, borderBottom: index === filteredAndSortedTasks.length - 1 ? "none" : "1px solid #e5e7eb" }} onClick={() => handleTaskClick(task)} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                   <div style={taskContentStyle}>
                     {task.is_open ? <Clock size={20} color="#9ca3af" /> : <CheckCircle size={20} color="#059669" />}
                     <div style={taskDetailsStyle}>
                       <div style={taskTitleStyle}><span style={{ fontSize: "16px", fontWeight: "500" }}>{task.title}</span></div>
-                      <div style={taskMetaStyle}>{task.assigned_to_username ? <span>Assigned: {task.assigned_to_username}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
+                      <div style={taskMetaStyle}>{task.assigned_to_user ? <span>Assigned: {task.assigned_to_user}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
                     </div>
                   </div>
                   <div style={{ fontSize: "14px", color: "#6b7280" }}>{task.is_open ? "Open" : "Completed"}</div>
