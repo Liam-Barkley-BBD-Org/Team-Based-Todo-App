@@ -1,5 +1,7 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client";
 
+<<<<<<< HEAD
 import { ArrowLeft, Clock, Edit3, Save, Trash2, User, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
@@ -13,355 +15,347 @@ import { PureAlertModal } from "../components/pure-modal"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
 import styles from "../styles/TaskDetailPage.module.css"
+=======
+import "../styles/TaskDetailPage.css";
+>>>>>>> origin/frontend
 
-// Types
-type TaskStatus = "open" | "in-progress" | "completed"
-type TaskPriority = "low" | "medium" | "high"
+import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Edit3,
+  Save,
+  X,
+  Clock,
+  User,
+  Calendar,
+  Flag,
+  Trash2,
+  Loader2,
+  Tag,
+} from "lucide-react";
+import { PureAvatar } from "../components/pure-avatar";
+import { PureBadge } from "../components/pure-badge";
+import { PureButton } from "../components/pure-button";
+import { PureCard, CardContent } from "../components/pure-card";
+import { PureTextarea } from "../components/pure-form";
+import { PureInput } from "../components/pure-input";
+import { PureAlertModal } from "../components/pure-modal";
+import { PureSelect } from "../components/pure-select";
+import { PureSidebar } from "../components/pure-sidebar";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { apiService } from "../api/apiService";
+import type {
+  Todo,
+  TeamMembership,
+  UpdateTodoPayload,
+} from "../type/api.types";
+import { AppLoader } from "../components/app-loader";
 
-type Task = {
-  id: number
-  title: string
-  description: string
-  status: TaskStatus
-  priority: TaskPriority
-  teamId: string
-  teamName: string
-  assigneeId: number | null
-  assigneeName: string | null
-  createdAt: string
-  updatedAt: string
-  dueDate: string | null
-  createdBy: {
-    id: number
-    name: string
-    avatar?: string
-    initials: string
-  }
-}
-
-// Mock data
-const mockTask: Task = {
-  id: 1,
-  title: "Implement user authentication system",
-  description:
-    "Create a comprehensive user authentication system with login, registration, password reset, and email verification features. The system should support OAuth integration with Google and GitHub, implement JWT tokens for session management, and include proper security measures like rate limiting and password hashing.",
-  status: "in-progress",
-  priority: "high",
-  teamId: "alpha",
-  teamName: "Team Alpha",
-  assigneeId: 2,
-  assigneeName: "Bob Smith",
-  createdAt: "2025-06-01T10:00:00Z",
-  updatedAt: "2025-06-05T14:30:00Z",
-  dueDate: "2025-06-15",
-  createdBy: {
-    id: 1,
-    name: "Alice Johnson",
-    avatar: "/placeholder-user.jpg",
-    initials: "AJ",
-  },
-}
-
-const priorities = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-]
-
-const statuses = [
-  { value: "open", label: "Open" },
-  { value: "in-progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-]
+const useToast = () => {
+  const [toastMessage, setToastMessage] = useState("");
+  const showToast = (message: string, duration: number = 3000) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(""), duration);
+  };
+  return { toastMessage, showToast };
+};
 
 export default function TaskDetailPage() {
-  const [isClient, setIsClient] = useState(false)
-  const [task, setTask] = useState<Task>(mockTask)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedTask, setEditedTask] = useState<Task>(mockTask)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [toastMessage, setToastMessage] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
+  const { taskId } = useParams<{ taskId: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toastMessage, showToast } = useToast();
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTask, setEditedTask] = useState<Todo | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const showToast = (message: string) => {
-    setToastMessage(message)
-    setTimeout(() => setToastMessage(""), 3000)
-  }
+  const { data: task, isLoading: isLoadingTask, isError: isErrorTask } = useQuery<Todo, AxiosError>({
+    queryKey: ['todo', taskId],
+    queryFn: () => apiService.todos.getTodoById(parseInt(taskId!, 10)),
+    enabled: !!taskId,
+  });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
 
-  const getStatusColor = (status: TaskStatus) => {
-    switch (status) {
-      case "completed":
-        return { backgroundColor: "#dcfce7", color: "#166534" }
-      case "in-progress":
-        return { backgroundColor: "#dbeafe", color: "#1e40af" }
-      case "open":
-        return { backgroundColor: "#f3f4f6", color: "#6b7280" }
+  const { data: teamMembers } = useQuery<TeamMembership[], AxiosError>({
+    queryKey: ['teamMembers', task ? task.team.name : ""],
+    queryFn: () => apiService.teams.getUsersInTeam(task!.team.name),
+    enabled: !!task,
+  });
+
+  // --- API Mutations ---
+  const updateTaskMutation = useMutation<Todo, AxiosError, { payload: UpdateTodoPayload }>({
+    mutationFn: ({ payload }) => apiService.todos.updateTodo(task!.id, payload),
+    onSuccess: (updatedData) => {
+      showToast("Task updated successfully!");
+      queryClient.setQueryData(['todo', taskId], updatedData);
+      queryClient.invalidateQueries({ queryKey: ['teamTodos', updatedData.team.name] });
+      setIsEditing(false);
+    },
+    onError: (error) => showToast(`Update failed: ${error.message}`, 5000),
+  });
+
+  const deleteTaskMutation = useMutation<void, AxiosError>({
+    mutationFn: () => apiService.todos.deleteTodo(task!.id),
+    onSuccess: () => {
+      showToast("Task deleted successfully!");
+      if (task) {
+        queryClient.invalidateQueries({ queryKey: ['teamTodos', task.team.name] });
+        navigate(`/team-details/${task.team.name}`);
+      } else {
+        navigate('/dashboard');
+      }
+    },
+    onError: (error) => showToast(`Delete failed: ${error.message}`, 5000),
+  });
+
+  useEffect(() => { if (task) setEditedTask(task); }, [task]);
+
+  // --- Event Handlers ---
+  const handleEdit = () => setIsEditing(true);
+  const handleCancel = () => { setEditedTask(task || null); setIsEditing(false); };
+  const handleSave = () => {
+    if (!editedTask) return;
+    const payload: UpdateTodoPayload = {
+      title: editedTask.title, description: editedTask.description, is_open: editedTask.is_open,
+      assigned_to_username: editedTask.assigned_to_user?.username || null,
+    };
+    updateTaskMutation.mutate({ payload });
+  };
+  const handleDeleteConfirm = () => deleteTaskMutation.mutate();
+  const handleFieldChange = (field: keyof UpdateTodoPayload, value: any) => {
+    if (field === 'assigned_to_username') {
+      const selectedUser = teamMembers?.find(m => m.user.username === value)?.user || null;
+      setEditedTask(prev => prev ? { ...prev, assigned_to_user: selectedUser } : null);
+    } else {
+      setEditedTask(prev => prev ? { ...prev, [field]: value } : null);
     }
+  };
+  const isTaskCompleted = task ? !task.is_open : false;
+
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const getStatusColor = (isOpen: boolean) => isOpen ? { backgroundColor: "#f3f4f6", color: "#6b7280" } : { backgroundColor: "#dcfce7", color: "#166534" };
+
+  if (isLoadingTask) {
+    return (
+      <PureSidebar>
+        <div style={{ padding: "2rem", textAlign: "center" }}>
+          <AppLoader />{" "}
+        </div>
+      </PureSidebar>
+    );
+  }
+  if (isErrorTask || !task || !editedTask) {
+    return (
+      <PureSidebar>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#dc2626" }}>
+          Task not found or failed to load.
+        </div>
+      </PureSidebar>
+    );
   }
 
-  const handleEdit = () => {
-    setEditedTask({ ...task })
-    setIsEditing(true)
-  }
-
-  const handleSave = async () => {
-    setIsSaving(true)
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      setTask(editedTask)
-      setIsEditing(false)
-      showToast("Task updated successfully!")
-    } catch (error) {
-      showToast("Failed to update task")
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleCancel = () => {
-    setEditedTask({ ...task })
-    setIsEditing(false)
-  }
-
-  const handleDelete = async () => {
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      showToast("Task deleted successfully!")
-      // In real app, redirect to task list
-    } catch (error) {
-      showToast("Failed to delete task")
-    }
-    setDeleteDialogOpen(false)
-  }
-
-  const handleTaskFieldChange = (field: keyof Task, value: any) => {
-    setEditedTask((prev) => ({ ...prev, [field]: value }))
-  }
-
-  if (!isClient) {
-    return <div>Loading...</div>
-  }
+  const assigneeOptions = [
+    { value: "", label: "Unassigned" },
+    ...(teamMembers?.map((m) => ({
+      value: m.user.username,
+      label: m.user.username,
+    })) || []),
+  ];
+  const statusOptions = [
+    { value: "open", label: "Open" },
+    { value: "completed", label: "Completed" },
+  ];
 
   return (
     <PureSidebar>
-      {/* Toast */}
       <div
-        role="status"
-        className={`${styles.toast} ${toastMessage ? styles.toastVisible : ""}`}
+        className={`task-detail-toast ${toastMessage ? "task-detail-toast--visible" : ""
+          }`}
       >
         {toastMessage}
       </div>
 
-      {/* Header */}
-      <header className={styles.header}>
-        <nav aria-label="Back navigation">
-          <Link to="/dashboard" className={styles.backButton}>
-            <ArrowLeft size={16} />
-            Back to Tasks
-          </Link>
-        </nav>
+      <div className="task-detail-page-wrapper">
+        <header className="task-detail-header">
+          <button
+            onClick={() => navigate(-1)}
+            className="task-detail-back-button"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <div className="task-detail-header__actions">
+            {!isEditing ? (
+              <>
+                {!isTaskCompleted && (
+                  <PureButton variant="outline" onClick={handleEdit}>
+                    <Edit3 size={16} /> Edit
+                  </PureButton>
+                )}
 
-        <div style={{ display: "flex", gap: "8px" }}>
-          {!isEditing ? (
-            <>
-              <PureButton variant="outline" onClick={handleEdit}>
-                <Edit3 size={16} style={{ marginRight: "8px" }} />
-                Edit
-              </PureButton>
-              <PureButton
-                variant="secondary"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 size={16} style={{ marginRight: "8px" }} />
-                Delete
-              </PureButton>
-            </>
-          ) : (
-            <>
-              <PureButton variant="outline" onClick={handleCancel}>
-                <X size={16} style={{ marginRight: "8px" }} />
-                Cancel
-              </PureButton>
-              <PureButton onClick={handleSave} disabled={isSaving}>
-                <Save size={16} style={{ marginRight: "8px" }} />
-                {isSaving ? "Saving..." : "Save"}
-              </PureButton>
-            </>
-          )}
-        </div>
-      </header>
+                {
+                  !isTaskCompleted && (
+                    <PureButton
+                      variant="primary"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      disabled={isTaskCompleted}
+                    >
+                      <Trash2 size={16} /> Delete
+                    </PureButton>
+                  )
+                }
+              </>
+            ) : (
+              <>
+                <PureButton variant="outline" onClick={handleCancel}><X size={16} /> Cancel</PureButton>
+                <PureButton onClick={handleSave} disabled={updateTaskMutation.isPending}>
+                  {updateTaskMutation.isPending ? <Loader2 className="animate-spin" /> : <Save size={16} />} Save Changes
+                </PureButton>
+              </>
+            )}
+          </div>
+        </header>
 
-      {/* Main Content */}
-      <main className={styles.main}>
-        {/* Left Column */}
-        <section className={styles.leftColumn}>
-          <PureCard>
-            <CardContent className="">
-              {!isEditing ? (
-                <>
-                  <header className={styles.titleSection}>
-                    <h1 className={styles.title}>{task.title}</h1>
-                  </header>
-
-                  <section className={styles.metaRow} aria-label="Task Metadata">
-                    <div className={styles.metaItem}>
-                      <User size={16} />
-                      <span>Created by {task.createdBy.name}</span>
+        <main className="task-detail-main">
+          <article className="task-detail-content">
+            <PureCard>
+              <CardContent>
+                {!isEditing ? (
+                  <section aria-labelledby="task-title">
+                    <h1 id="task-title" className="task-detail-content__title">
+                      {task.title}
+                    </h1>
+                    <div className="task-detail-content__meta-row">
+                      <span className="task-detail-content__meta-item">
+                        <User size={16} /> Created by{" "}
+                        {task.created_by_user.username}
+                      </span>
+                      <span className="task-detail-content__meta-item">
+                        <Clock size={16} /> Created on{" "}
+                        {formatDate(task.created_at)}
+                      </span>
                     </div>
-                    <div className={styles.metaItem}>
-                      <Clock size={16} />
-                      <span>Created {formatDate(task.createdAt)}</span>
-                    </div>
+                    <p className="task-detail-content__description">
+                      {task.description}
+                    </p>
                   </section>
-
-                  <section className={styles.metaRow}>
-                    <PureBadge style={getStatusColor(task.status)}>
-                      {statuses.find((s) => s.value === task.status)?.label}
-                    </PureBadge>
-                  </section>
-
-                  <p className={styles.description}>{task.description}</p>
-                </>
-              ) : (
-                <form className={styles.editForm}>
-                  <div>
-                    <label className={styles.sidebarLabel} htmlFor="title">
-                      Title
-                    </label>
-                    <PureInput
-                      id="title"
-                      value={editedTask.title}
-                      onChange={(e) =>
-                        handleTaskFieldChange("title", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className={styles.sidebarLabel} htmlFor="description">
-                      Description
-                    </label>
-                    <PureTextarea
-                      id="description"
-                      rows={6}
-                      value={editedTask.description}
-                      onChange={(e) =>
-                        handleTaskFieldChange("description", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div
-                    style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-                  >
-                    <div>
-                      <label className={styles.sidebarLabel} htmlFor="status">
-                        Status
+                ) : (
+                  <form className="task-detail-edit-form">
+                    <section>
+                      <label className="task-detail-sidebar__label">
+                        Title
                       </label>
-                      <PureSelect
-                        value={editedTask.status}
-                        onValueChange={(value) =>
-                          handleTaskFieldChange("status", value)
+                      <PureInput
+                        value={editedTask.title}
+                        onChange={(e) =>
+                          handleFieldChange("title", e.target.value)
                         }
-                        options={statuses}
                       />
-                    </div>
-
-                    <div>
-                      <label className={styles.sidebarLabel} htmlFor="priority">
-                        Priority
+                    </section>
+                    <section>
+                      <label className="task-detail-sidebar__label">
+                        Description
                       </label>
-                      <PureSelect
-                        value={editedTask.priority}
-                        onValueChange={(value) =>
-                          handleTaskFieldChange("priority", value)
+                      <PureTextarea
+                        value={editedTask.description}
+                        onChange={(e) =>
+                          handleFieldChange("description", e.target.value)
                         }
-                        options={priorities}
+                        rows={8}
                       />
-                    </div>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </PureCard>
-        </section>
+                    </section>
+                  </form>
+                )}
+              </CardContent>
+            </PureCard>
+          </article>
 
-        {/* Right Column - Sidebar Info */}
-        <aside className={styles.rightColumn} aria-label="Task Properties Sidebar">
-          <PureCard>
-            <CardContent className="">
-              <h2
-                style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}
-              >
-                Task Properties
-              </h2>
-
-              <section className={styles.sidebarSection}>
-                <label className={styles.sidebarLabel}>Team</label>
-                <div style={{ fontSize: 14, color: "#374151" }}>
-                  {task.teamName}
-                </div>
-              </section>
-
-              <section className={styles.sidebarSection}>
-                <label className={styles.sidebarLabel}>Assignee</label>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {task.assigneeName ? (
-                    <>
-                      <PureAvatar fallback="BS" size={24} />
-                      <span style={{ fontSize: 14 }}>{task.assigneeName}</span>
-                    </>
+          <aside className="task-detail-sidebar">
+            <PureCard>
+              <CardContent>
+                <h3
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Properties
+                </h3>
+                <section className="task-detail-sidebar__section">
+                  <label className="task-detail-sidebar__label">Status</label>
+                  {isEditing ? (
+                    <PureSelect
+                      value={editedTask.is_open ? "open" : "completed"}
+                      onValueChange={(v) =>
+                        handleFieldChange("is_open", v === "open")
+                      }
+                      options={statusOptions}
+                    />
                   ) : (
-                    <span style={{ fontSize: 14, color: "#6b7280" }}>Unassigned</span>
+                    <PureBadge style={getStatusColor(task.is_open)}>
+                      {task.is_open ? "Open" : "Completed"}
+                    </PureBadge>
                   )}
-                </div>
-              </section>
+                </section>
+                <section className="task-detail-sidebar__section">
+                  <label className="task-detail-sidebar__label">Assignee</label>
+                  {isEditing ? (
+                    <PureSelect
+                      value={editedTask.assigned_to_user?.username || ""}
+                      onValueChange={(v) =>
+                        handleFieldChange(
+                          "assigned_to_username",
+                          v === "" ? null : v
+                        )
+                      }
+                      options={assigneeOptions}
+                    />
+                  ) : (
+                    <div className="task-detail-sidebar__value--flex">
+                      {task.assigned_to_user ? (
+                        <>
+                          <PureAvatar
+                            fallback={task.assigned_to_user.username
+                              .charAt(0)
+                              .toUpperCase()}
+                            size={24}
+                          />
+                          <span>{task.assigned_to_user.username}</span>
+                        </>
+                      ) : (
+                        <span>Unassigned</span>
+                      )}
+                    </div>
+                  )}
+                </section>
+                <section className="task-detail-sidebar__section">
+                  <label className="task-detail-sidebar__label">Team</label>
+                  <div className="task-detail-sidebar__value--flex">
+                    <Tag size={16} />
+                    <span>{task.team.name}</span>
+                  </div>
+                </section>
+              </CardContent>
+            </PureCard>
+          </aside>
+        </main>
+      </div>
 
-              <section className={styles.sidebarSection}>
-                <label className={styles.sidebarLabel}>Status</label>
-                <PureBadge style={getStatusColor(task.status)}>
-                  {statuses.find((s) => s.value === task.status)?.label}
-                </PureBadge>
-              </section>
-
-              <section className={styles.sidebarSection}>
-                <label className={styles.sidebarLabel}>Created</label>
-                <div style={{ fontSize: 14, color: "#374151" }}>
-                  {formatDate(task.createdAt)}
-                </div>
-              </section>
-            </CardContent>
-          </PureCard>
-        </aside>
-      </main>
-
-      {/* Delete Confirmation Modal */}
       <PureAlertModal
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
+        onConfirm={handleDeleteConfirm}
         title="Delete Task"
         description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
+        isDestructive={true}
+        isConfirming={deleteTaskMutation.isPending}
       />
+      <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </PureSidebar>
-  )
+  );
 }

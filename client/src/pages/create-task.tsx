@@ -1,253 +1,178 @@
 "use client";
 
-import { ArrowLeft, FileText, Save } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { PureButton } from "../components/pure-button";
-import { CardContent, PureCard } from "../components/pure-card";
-import { PureLabel, PureTextarea } from "../components/pure-form";
-import { PureInput } from "../components/pure-input";
-import { PureSelect } from "../components/pure-select";
-import { PureSidebar } from "../components/pure-sidebar";
-import styles from "../styles/CreateTaskPage.module.css";
-import { API_URL } from "../utils/hiddenGlobals";
+import type React from "react"
+import "../styles/CreateTaskPage.css";
 
-interface OptionType {
-  value: string;
-  label: string;
+import { useState, useEffect, useMemo } from "react"
+import { ArrowLeft, FileText, Save, Loader2 } from "lucide-react"
+import { PureButton } from "../components/pure-button"
+import { PureCard, CardContent } from "../components/pure-card"
+import { PureLabel, PureTextarea } from "../components/pure-form"
+import { PureInput } from "../components/pure-input"
+import { PureSelect } from "../components/pure-select"
+import { PureSidebar } from "../components/pure-sidebar"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import type { AxiosError } from "axios"
+import { apiService } from "../api/apiService"
+import { useAuth } from "../hooks/useAuth"
+import type { TeamMembership, NewTodoPayload } from "../type/api.types"
+
+
+const useToast = () => {
+  const [toastMessage, setToastMessage] = useState("");
+  const showToast = (message: string, duration: number = 3000) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(""), duration);
+  };
+  return { toastMessage, showToast };
+};
+
+interface TaskFormData {
+  title: string;
+  description: string;
+  teamname: string;
+  assigned_to_username: string | null;
 }
 
 export default function CreateTaskPage() {
-  // const navigate = useNavigate();
-  const [isClient, setIsClient] = useState(false);
-  const [teams, setTeams] = useState<OptionType[]>([]);
-  const [users, setUsers] = useState<OptionType[]>([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toastMessage, showToast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const preselectedTeam = location.state?.teamName || "";
+
+  const [formData, setFormData] = useState<TaskFormData>({
     title: "",
     description: "",
-    teamId: "",
-    assigneeId: "",
-    priority: "medium",
-    status: "open",
-    dueDate: "",
-    tags: [] as string[],
-    currentTag: "",
+    teamname: preselectedTeam,
+    assigned_to_username: null,
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof TaskFormData, string>>>({});
+
+  const { data: userMemberships } = useQuery<TeamMembership[], AxiosError>({
+    queryKey: ['userTeams', user?.username],
+    queryFn: () => apiService.users.getTeamsForUser(user!.username),
+    enabled: !!user,
   });
 
-  const [isCreating, setIsCreating] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMembership[], AxiosError>({
+    queryKey: ['teamMembers', formData.teamname],
+    queryFn: () => apiService.teams.getUsersInTeam(formData.teamname),
+    enabled: !!formData.teamname,
+  });
 
-  const username = sessionStorage.getItem("username");
-  const token = sessionStorage.getItem("authToken");
+  const createTaskMutation = useMutation<any, AxiosError<{ message: string }>, NewTodoPayload>({
+    mutationFn: apiService.todos.createTodo,
+    onSuccess: (data) => {
+      showToast(`Task "${data.title}" created successfully!`);
+      queryClient.invalidateQueries({ queryKey: ['teamTodos', formData.teamname] });
+      queryClient.invalidateQueries({ queryKey: ['todos', user?.username] });
+      navigate(`/team-details/${formData.teamname}`);
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || "Failed to create task.";
+      showToast(message, 5000);
+    }
+  });
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!username || !token) return;
-      try {
-        const teamRes = await fetch(`${API_URL}/api/team_members/user/${username}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const teamData = await teamRes.json();
-        setTeams(teamData.map((t: any) => ({ value: t.teamname, label: t.teamname })));
-
-        const allUsers: any[] = [];
-        for (const team of teamData) {
-          const userRes = await fetch(`${API_URL}/api/team_members/team/${team.teamname}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const members = await userRes.json();
-          allUsers.push(...members);
-        }
-
-        const uniqueUsers = Array.from(new Map(allUsers.map(u => [u.username, u])).values());
-        setUsers(uniqueUsers.map(u => ({ value: u.username, label: u.username })));
-
-      } catch (err) {
-        console.error("Failed to fetch teams or users.", err);
-      }
-    };
-
-    fetchData();
-  }, [username, token]);
-
-  const showToast = (message: string, _type: "success" | "error" = "success") => {
-    setToastMessage(message);
-    setTimeout(() => setToastMessage(""), 3000);
+  const handleInputChange = (field: keyof TaskFormData, value: string | null) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof TaskFormData, string>> = {};
     if (!formData.title.trim()) newErrors.title = "Task title is required";
-    if (!formData.description.trim()) newErrors.description = "Task description is required";
-    if (!formData.teamId) newErrors.teamId = "Please select a team";
-
-    if (formData.dueDate) {
-      const selectedDate = new Date(formData.dueDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) newErrors.dueDate = "Due date cannot be in the past";
-    }
-
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.teamname) newErrors.teamname = "Please select a team";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
-      showToast("Please fix the errors below", "error");
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      const payload = {
-        title: formData.title,
-        description: formData.description,
-        created_at: new Date().toISOString(),
-        created_by_username: username,
-        teamname: formData.teamId,
-        assigned_to_username: formData.assigneeId || null,
-      };
-
-      const res = await fetch(`${API_URL}/api/todos/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to create task");
-
-      showToast(`Task \"${formData.title}\" created successfully!`);
-      setFormData({
-        title: "",
-        description: "",
-        teamId: "",
-        assigneeId: "",
-        priority: "medium",
-        status: "open",
-        dueDate: "",
-        tags: [],
-        currentTag: "",
-      });
-    } catch (error) {
-      showToast("Failed to create task. Please try again.", "error");
-    } finally {
-      setIsCreating(false);
-    }
+    if (!validateForm() || !user?.username) return;
+    const payload: NewTodoPayload = {
+      ...formData,
+      created_at: new Date().toISOString(),
+      created_by_username: user.username,
+    };
+    createTaskMutation.mutate(payload);
   };
 
-  // const getStatusColor = (status: string) => {
-  //   switch (status) {
-  //     case "completed": return { backgroundColor: "#dcfce7", color: "#166534" };
-  //     case "in-progress": return { backgroundColor: "#dbeafe", color: "#1e40af" };
-  //     case "open":
-  //     default: return { backgroundColor: "#f3f4f6", color: "#6b7280" };
-  //   }
-  // };
-
-  if (!isClient) return <div>Loading...</div>;
+  // --- Dynamic Dropdown Options ---
+  const teamOptions = useMemo(() => userMemberships?.map(m => ({ value: m.team.name, label: m.team.name })) || [], [userMemberships]);
+  const assigneeOptions = useMemo(() => {
+    if (isLoadingTeamMembers) return [{ value: '', label: "Loading..." }];
+    if (!teamMembers) return [{ value: '', label: "Select a team first" }];
+    return [{ value: '', label: "Unassigned" }, ...teamMembers.map(m => ({ value: m.user.username, label: m.user.username }))];
+  }, [teamMembers, isLoadingTeamMembers]);
 
   return (
     <PureSidebar>
-      <aside role="status" aria-live="polite" className={`${styles.toast} ${toastMessage ? "" : styles.toastHidden}`}>{toastMessage}</aside>
-      <header className={styles.header}>
-        <nav aria-label="Back navigation">
-          <Link to="/dashboard" className={styles.backButton}>
-            <ArrowLeft size={16} />
-            Back to Dashboard
+      <div className={`create-task-toast ${toastMessage ? 'create-task-toast--visible' : ''}`}>{toastMessage}</div>
+
+      <div className="create-task-page-wrapper">
+        <header className="create-task-header">
+          <Link to={-1 as unknown as string} className="create-task-back-button">
+            <ArrowLeft size={16} /> Back
           </Link>
-        </nav>
-      </header>
+        </header>
 
-      <main className={styles.main}>
-        <section className={styles.container} aria-labelledby="create-task-heading">
-          <header className={styles.headerText}>
-            <h1 id="create-task-heading" className={styles.title}>Create New Task</h1>
-            <p className={styles.subtitle}>Create a new task and assign it to team members to track progress and collaborate effectively.</p>
-          </header>
-
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <section aria-labelledby="task-details-heading">
-              <PureCard>
-                <CardContent className="">
-                  <h2 id="task-details-heading" className={styles.sectionHeading}><FileText size={20} /> Task Details</h2>
-
-                  <div className={styles.formGroup}>
-                    <PureLabel htmlFor="title">Task Title *</PureLabel>
-                    <PureInput
-                      id="title"
-                      placeholder="Enter a clear and descriptive task title..."
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      style={{ borderColor: errors.title ? "#dc2626" : undefined }}
-                    />
-                    {errors.title && <p className={styles.error}>{errors.title}</p>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <PureLabel htmlFor="description">Description *</PureLabel>
-                    <PureTextarea
-                      id="description"
-                      placeholder="Provide detailed information about the task, requirements, and expected outcomes..."
-                      value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
-                      rows={4}
-                      style={{ borderColor: errors.description ? "#dc2626" : undefined }}
-                    />
-                    {errors.description && <p className={styles.error}>{errors.description}</p>}
-                  </div>
-
-                  <fieldset className={styles.grid}>
-                    <div className={styles.formGroup}>
-                      <PureLabel>Team *</PureLabel>
-                      <PureSelect
-                        value={formData.teamId}
-                        onValueChange={(value: string) => handleInputChange("teamId", value)}
-                        options={teams}
-                        placeholder="Select team"
-                        style={{ borderColor: errors.teamId ? "#dc2626" : undefined }}
-                      />
-                      {errors.teamId && <p className={styles.error}>{errors.teamId}</p>}
-                    </div>
-
-                    <div className={styles.formGroup}>
-                      <PureLabel>Assignee</PureLabel>
-                      <PureSelect
-                        value={formData.assigneeId}
-                        onValueChange={(value: string) => handleInputChange("assigneeId", value)}
-                        options={[{ value: "", label: "Unassigned" }, ...users]}
-                        placeholder="Select assignee"
-                      />
-                    </div>
-                  </fieldset>
-                </CardContent>
-              </PureCard>
+        <main className="create-task-main">
+          <div className="create-task-container">
+            <section className="create-task-intro" aria-labelledby="page-title">
+              <h1 id="page-title" className="create-task-intro__title">Create New Task</h1>
+              <p className="create-task-intro__subtitle">Fill in the details below to create a new task for your team.</p>
             </section>
 
-            <div className={styles.buttonContainer}>
-              <PureButton type="button" variant="outline" onClick={() => window.history.back()}>Cancel</PureButton>
-              <PureButton type="submit" disabled={isCreating} style={{ minWidth: "140px" }}>
-                {isCreating ? (<><div className={styles.creatingSpinner} /> Creating...</>) : (<><Save size={16} style={{ marginRight: "8px" }} /> Create Task</>)}
-              </PureButton>
-            </div>
-          </form>
-        </section>
-      </main>
+            <form onSubmit={handleSubmit} className="create-task-form" noValidate>
+              <PureCard>
+                <CardContent>
+                  <h2 className="create-task-form__card-header"><FileText size={20} /> Task Details</h2>
+                  <div className="create-task-form__group">
+                    <PureLabel htmlFor="title">Task Title *</PureLabel>
+                    <PureInput id="title" placeholder="e.g., Design new marketing banner" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} style={{ borderColor: errors.title ? '#dc2626' : undefined }} />
+                    {errors.title && <div className="create-task-form__error">{errors.title}</div>}
+                  </div>
+                  <div className="create-task-form__group">
+                    <PureLabel htmlFor="description">Description *</PureLabel>
+                    <PureTextarea id="description" placeholder="Provide details about the task..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} rows={4} style={{ borderColor: errors.description ? '#dc2626' : undefined }} />
+                    {errors.description && <div className="create-task-form__error">{errors.description}</div>}
+                  </div>
+                  <div className="create-task-form__grid">
+                    <div className="create-task-form__group">
+                      <PureLabel>Team *</PureLabel>
+                      <PureSelect value={formData.teamname} onValueChange={(v) => handleInputChange("teamname", v)} options={teamOptions} placeholder="Select team" style={{ borderColor: errors.teamname ? '#dc2626' : undefined }} />
+                      {errors.teamname && <div className="create-task-form__error">{errors.teamname}</div>}
+                    </div>
+                    <div className="create-task-form__group">
+                      <PureLabel>Assignee</PureLabel>
+                      <PureSelect value={formData.assigned_to_username || ''} onValueChange={(v) => handleInputChange("assigned_to_username", v || null)} options={assigneeOptions} placeholder="Select assignee" disabled={isLoadingTeamMembers || !formData.teamname} />
+                    </div>
+                  </div>
+                </CardContent>
+              </PureCard>
+              <div className="create-task-form__actions">
+                <PureButton type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</PureButton>
+                <PureButton type="submit" disabled={createTaskMutation.isPending} style={{ minWidth: "140px" }}>
+                  {createTaskMutation.isPending ? (<Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />) : (<Save size={16} style={{ marginRight: "8px" }} />)}
+                  {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
+                </PureButton>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
     </PureSidebar>
   );
 }
