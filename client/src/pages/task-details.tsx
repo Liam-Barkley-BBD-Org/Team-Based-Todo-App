@@ -62,8 +62,9 @@ export default function TaskDetailPage() {
     enabled: !!taskId,
   });
 
+
   const { data: teamMembers } = useQuery<TeamMembership[], AxiosError>({
-    queryKey: ['teamMembers', task?.team.name],
+    queryKey: ['teamMembers', task ? task.team.name : ""],
     queryFn: () => apiService.teams.getUsersInTeam(task!.team.name),
     enabled: !!task,
   });
@@ -84,8 +85,12 @@ export default function TaskDetailPage() {
     mutationFn: () => apiService.todos.deleteTodo(task!.id),
     onSuccess: () => {
       showToast("Task deleted successfully!");
-      queryClient.invalidateQueries({ queryKey: ['teamTodos', task?.team.name] });
-      navigate(`/team-details/${task?.team.name}`);
+      if (task) {
+        queryClient.invalidateQueries({ queryKey: ['teamTodos', task.team.name] });
+        navigate(`/team-details/${task.team.name}`);
+      } else {
+        navigate('/dashboard');
+      }
     },
     onError: (error) => showToast(`Delete failed: ${error.message}`, 5000),
   });
@@ -112,6 +117,7 @@ export default function TaskDetailPage() {
       setEditedTask(prev => prev ? { ...prev, [field]: value } : null);
     }
   };
+  const isTaskCompleted = task ? !task.is_open : false;
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const getStatusColor = (isOpen: boolean) => isOpen ? { backgroundColor: "#f3f4f6", color: "#6b7280" } : { backgroundColor: "#dcfce7", color: "#166534" };
@@ -167,31 +173,29 @@ export default function TaskDetailPage() {
           <div className="task-detail-header__actions">
             {!isEditing ? (
               <>
-                <PureButton variant="outline" onClick={handleEdit}>
-                  <Edit3 size={16} /> Edit
-                </PureButton>
-                <PureButton
-                  variant="primary"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 size={16} /> Delete
-                </PureButton>
+                {!isTaskCompleted && (
+                  <PureButton variant="outline" onClick={handleEdit}>
+                    <Edit3 size={16} /> Edit
+                  </PureButton>
+                )}
+
+                {
+                  !isTaskCompleted && (
+                    <PureButton
+                      variant="primary"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      disabled={isTaskCompleted}
+                    >
+                      <Trash2 size={16} /> Delete
+                    </PureButton>
+                  )
+                }
               </>
             ) : (
               <>
-                <PureButton variant="outline" onClick={handleCancel}>
-                  <X size={16} /> Cancel
-                </PureButton>
-                <PureButton
-                  onClick={handleSave}
-                  disabled={updateTaskMutation.isPending}
-                >
-                  {updateTaskMutation.isPending ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <Save size={16} />
-                  )}{" "}
-                  Save Changes
+                <PureButton variant="outline" onClick={handleCancel}><X size={16} /> Cancel</PureButton>
+                <PureButton onClick={handleSave} disabled={updateTaskMutation.isPending}>
+                  {updateTaskMutation.isPending ? <Loader2 className="animate-spin" /> : <Save size={16} />} Save Changes
                 </PureButton>
               </>
             )}

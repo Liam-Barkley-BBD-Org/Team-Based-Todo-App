@@ -33,7 +33,7 @@ export default function TeamView() {
   const { teamName } = useParams<{ teamName: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const { toastMessage } = useToast();
 
   const [statusFilter, setStatusFilter] = useState<"all" | "open" | "completed">("all");
@@ -41,6 +41,8 @@ export default function TeamView() {
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+  const canManageMembers = roles.includes('TEAM_LEAD');
 
   // --- Data Fetching with React Query ---
   const { data: memberships, isLoading: isLoadingMembers } = useQuery<TeamMembership[], AxiosError>({
@@ -139,7 +141,14 @@ export default function TeamView() {
                 <h1 style={teamTitleStyle}>Team: {teamName}</h1>
                 {teamOwnerUsername && <div style={ownerStyle}><Crown size={16} /><span>Owner: {teamOwnerUsername}</span></div>}
               </div>
-              <PureButton><UserPlus size={16} style={{ marginRight: "8px" }} /> Add Member</PureButton>
+              {canManageMembers && (
+                <Link to={`/team-details/${teamName}/add-member`}>
+                  <PureButton>
+                    <UserPlus size={16} style={{ marginRight: "8px" }} />
+                    Add Member
+                  </PureButton>
+                </Link>
+              )}
             </div>
             <div style={membersStyle}>
               <h3 style={{ fontSize: "16px", fontWeight: "500", margin: "0 0 12px 0" }}>Members:</h3>

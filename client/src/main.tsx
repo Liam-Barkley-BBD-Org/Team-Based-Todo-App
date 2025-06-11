@@ -19,6 +19,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import TwoFactorPage from './pages/TwoFactorPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 import ProtectedRoute from './components/protected-route.tsx';
+import NotFound from './pages/NotFoundPage.tsx';
+import AddTeamMemberPage from './pages/AddTeamMember.tsx';
 
 // Simulate the logged-in user's ID for now
 const loggedInUserId = "123"; // TODO: Replace with context or auth
@@ -59,8 +61,22 @@ const router = createBrowserRouter([
             path: '/team-details/:teamName',
             element: <TeamView />,
           },
+          {
+            element: <AuthProtectedRoute requiredRole="TEAM_LEAD" />,
+            children: [
+              {
+                path: '/team-details/:teamName/add-member',
+                element: <AddTeamMemberPage />,
+              },
+            ],
+          },
         ],
       },
+
+      {
+        path: "*",
+        element: <NotFound />
+      }
 
     ],
   },
