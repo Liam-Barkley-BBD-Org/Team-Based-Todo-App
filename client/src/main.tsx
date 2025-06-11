@@ -13,26 +13,21 @@ import LoginPage from './pages/LoginPage.tsx';
 import { ProtectedRoute } from './layouts/ProtectedRoute.tsx';
 
 
-const queryClient = new QueryClient({ /* ... your default options ... */ });
+const queryClient = new QueryClient({ });
 
 const router = createBrowserRouter([
   {
-    // The RootLayout is the parent of ALL routes.
-    // It handles the initial loading and session check.
     element: <RootLayout />,
     children: [
       {
-        // Public routes are direct children of the RootLayout
         path: '/login',
         element: <LoginPage />,
       },
       {
-        // The ProtectedRoute layout acts as a gatekeeper for all nested routes.
         element: <ProtectedRoute />,
         children: [
-          // All routes inside here require authentication.
           {
-            path: '/', // Redirect root to dashboard
+            path: '/',
             element: <Navigate to="/dashboard" replace />,
           },
           {
@@ -48,24 +43,22 @@ const router = createBrowserRouter([
             element: <CreateTaskPage />,
           },
           {
-            path: '/task-details/:taskId', // Use path params for dynamic routes
+            path: '/task-details/:taskId',
             element: <TaskDetailPage />,
           },
           {
-            path: '/team-details/:teamId', // Use path params
+            path: '/team-details/:teamName',
             element: <TeamView />,
           },
         ],
       },
-      // You can add other top-level routes here, like a 404 page
-      // { path: '*', element: <NotFoundPage /> }
+
     ],
   },
 ]);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* The QueryClientProvider should wrap the RouterProvider */}
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
