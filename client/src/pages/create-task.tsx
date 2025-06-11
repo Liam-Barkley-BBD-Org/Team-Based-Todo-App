@@ -1,357 +1,178 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { Plus, ArrowLeft, FileText, Save } from "lucide-react"
-import { PureBadge } from "../components/pure-badge"
+import type React from "react"
+import "../styles/CreateTaskPage.css";
+
+import { useState, useEffect, useMemo } from "react"
+import { ArrowLeft, FileText, Save, Loader2 } from "lucide-react"
 import { PureButton } from "../components/pure-button"
 import { PureCard, CardContent } from "../components/pure-card"
 import { PureLabel, PureTextarea } from "../components/pure-form"
 import { PureInput } from "../components/pure-input"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { Link } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import type { AxiosError } from "axios"
+import { apiService } from "../api/apiService"
+import { useAuth } from "../hooks/useAuth"
+import type { TeamMembership, NewTodoPayload } from "../type/api.types"
 
-import styles from "../styles/CreateTaskPage.module.css"  // Adjust path as needed
 
-// Mock data
-const teams = [
-  { value: "alpha", label: "Team Alpha" },
-  { value: "beta", label: "Team Beta" },
-  { value: "gamma", label: "Team Gamma" },
-]
+const useToast = () => {
+  const [toastMessage, setToastMessage] = useState("");
+  const showToast = (message: string, duration: number = 3000) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(""), duration);
+  };
+  return { toastMessage, showToast };
+};
 
-const users = [
-  { value: "1", label: "Alice Johnson" },
-  { value: "2", label: "Bob Smith" },
-  { value: "3", label: "Charlie Brown" },
-  { value: "4", label: "Diana Prince" },
-  { value: "5", label: "Eve Wilson" },
-]
-
-const statuses = [
-  { value: "open", label: "Open" },
-  { value: "in-progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-]
+interface TaskFormData {
+  title: string;
+  description: string;
+  teamname: string;
+  assigned_to_username: string | null;
+}
 
 export default function CreateTaskPage() {
-  const [isClient, setIsClient] = useState(false)
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toastMessage, showToast } = useToast();
+
+  const preselectedTeam = location.state?.teamName || "";
+
+  const [formData, setFormData] = useState<TaskFormData>({
     title: "",
     description: "",
-    teamId: "",
-    assigneeId: "",
-    priority: "medium",
-    status: "open",
-    dueDate: "",
-    tags: [] as string[],
-    currentTag: "",
-  })
-  const [isCreating, setIsCreating] = useState(false)
-  const [toastMessage, setToastMessage] = useState("")
-  const [errors, setErrors] = useState<Record<string, string>>({})
+    teamname: preselectedTeam,
+    assigned_to_username: null,
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof TaskFormData, string>>>({});
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  const { data: userMemberships } = useQuery<TeamMembership[], AxiosError>({
+    queryKey: ['userTeams', user?.username],
+    queryFn: () => apiService.users.getTeamsForUser(user!.username),
+    enabled: !!user,
+  });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const showToast = (message: string, _type: "success" | "error" = "success") => {
-    setToastMessage(message)
-    setTimeout(() => setToastMessage(""), 3000)
-  }
+  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery<TeamMembership[], AxiosError>({
+    queryKey: ['teamMembers', formData.teamname],
+    queryFn: () => apiService.teams.getUsersInTeam(formData.teamname),
+    enabled: !!formData.teamname,
+  });
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.title.trim()) {
-      newErrors.title = "Task title is required"
+  const createTaskMutation = useMutation<any, AxiosError<{ message: string }>, NewTodoPayload>({
+    mutationFn: apiService.todos.createTodo,
+    onSuccess: (data) => {
+      showToast(`Task "${data.title}" created successfully!`);
+      queryClient.invalidateQueries({ queryKey: ['teamTodos', formData.teamname] });
+      queryClient.invalidateQueries({ queryKey: ['todos', user?.username] });
+      navigate(`/team-details/${formData.teamname}`);
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || "Failed to create task.";
+      showToast(message, 5000);
     }
+  });
 
-    if (!formData.description.trim()) {
-      newErrors.description = "Task description is required"
-    }
-
-    if (!formData.teamId) {
-      newErrors.teamId = "Please select a team"
-    }
-
-    if (formData.dueDate) {
-      const selectedDate = new Date(formData.dueDate)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      if (selectedDate < today) {
-        newErrors.dueDate = "Due date cannot be in the past"
-      }
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-
-    // Clear error when user starts typing
+  const handleInputChange = (field: keyof TaskFormData, value: string | null) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
-  }
+  };
 
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof TaskFormData, string>> = {};
+    if (!formData.title.trim()) newErrors.title = "Task title is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.teamname) newErrors.teamname = "Please select a team";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm() || !user?.username) return;
+    const payload: NewTodoPayload = {
+      ...formData,
+      created_at: new Date().toISOString(),
+      created_by_username: user.username,
+    };
+    createTaskMutation.mutate(payload);
+  };
 
-    if (!validateForm()) {
-      showToast("Please fix the errors below", "error")
-      return
-    }
-
-    setIsCreating(true)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      showToast(`Task "${formData.title}" created successfully!`)
-
-      // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        teamId: "",
-        assigneeId: "",
-        priority: "medium",
-        status: "open",
-        dueDate: "",
-        tags: [],
-        currentTag: "",
-      })
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      showToast("Failed to create task. Please try again.", "error")
-    } finally {
-      setIsCreating(false)
-    }
-  }
-
-  if (!isClient) {
-    return <div>Loading...</div>
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return { backgroundColor: "#dcfce7", color: "#166534" }
-      case "in-progress":
-        return { backgroundColor: "#dbeafe", color: "#1e40af" }
-      case "open":
-        return { backgroundColor: "#f3f4f6", color: "#6b7280" }
-      default:
-        return { backgroundColor: "#f3f4f6", color: "#6b7280" }
-    }
-  }
-
-  if (!isClient) {
-    return <div>Loading...</div>
-  }
+  // --- Dynamic Dropdown Options ---
+  const teamOptions = useMemo(() => userMemberships?.map(m => ({ value: m.team.name, label: m.team.name })) || [], [userMemberships]);
+  const assigneeOptions = useMemo(() => {
+    if (isLoadingTeamMembers) return [{ value: '', label: "Loading..." }];
+    if (!teamMembers) return [{ value: '', label: "Select a team first" }];
+    return [{ value: '', label: "Unassigned" }, ...teamMembers.map(m => ({ value: m.user.username, label: m.user.username }))];
+  }, [teamMembers, isLoadingTeamMembers]);
 
   return (
     <PureSidebar>
-      {/* Toast Notification */}
-      <aside
-        role="status"
-        aria-live="polite"
-        className={`${styles.toast} ${toastMessage ? "" : styles.toastHidden}`}
-      >
-        {toastMessage}
-      </aside>
+      <div className={`create-task-toast ${toastMessage ? 'create-task-toast--visible' : ''}`}>{toastMessage}</div>
 
-      {/* Page Header */}
-      <header className={styles.header}>
-        <nav aria-label="Back navigation">
-          <Link to="/dashboard" className={styles.backButton}>
-            <ArrowLeft size={16} />
-            Back to Dashboard
+      <div className="create-task-page-wrapper">
+        <header className="create-task-header">
+          <Link to={-1 as unknown as string} className="create-task-back-button">
+            <ArrowLeft size={16} /> Back
           </Link>
-        </nav>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className={styles.main}>
-        <section className={styles.container} aria-labelledby="create-task-heading">
-          <header className={styles.headerText}>
-            <h1 id="create-task-heading" className={styles.title}>Create New Task</h1>
-            <p className={styles.subtitle}>
-              Create a new task and assign it to team members to track progress and collaborate effectively.
-            </p>
-          </header>
+        <main className="create-task-main">
+          <div className="create-task-container">
+            <section className="create-task-intro" aria-labelledby="page-title">
+              <h1 id="page-title" className="create-task-intro__title">Create New Task</h1>
+              <p className="create-task-intro__subtitle">Fill in the details below to create a new task for your team.</p>
+            </section>
 
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <section aria-labelledby="task-details-heading">
+            <form onSubmit={handleSubmit} className="create-task-form" noValidate>
               <PureCard>
-                <CardContent className="">
-                  <h2
-                    id="task-details-heading"
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      marginBottom: "20px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <FileText size={20} />
-                    Task Details
-                  </h2>
-
-                  {/* Title */}
-                  <div className={styles.formGroup}>
+                <CardContent>
+                  <h2 className="create-task-form__card-header"><FileText size={20} /> Task Details</h2>
+                  <div className="create-task-form__group">
                     <PureLabel htmlFor="title">Task Title *</PureLabel>
-                    <PureInput
-                      id="title"
-                      placeholder="Enter a clear and descriptive task title..."
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      style={{ borderColor: errors.title ? "#dc2626" : undefined }}
-                    />
-                    {errors.title && <p className={styles.error}>{errors.title}</p>}
+                    <PureInput id="title" placeholder="e.g., Design new marketing banner" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} style={{ borderColor: errors.title ? '#dc2626' : undefined }} />
+                    {errors.title && <div className="create-task-form__error">{errors.title}</div>}
                   </div>
-
-                  {/* Description */}
-                  <div className={styles.formGroup}>
+                  <div className="create-task-form__group">
                     <PureLabel htmlFor="description">Description *</PureLabel>
-                    <PureTextarea
-                      id="description"
-                      placeholder="Provide detailed information about the task, requirements, and expected outcomes..."
-                      value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
-                      rows={4}
-                      style={{ borderColor: errors.description ? "#dc2626" : undefined }}
-                    />
-                    {errors.description && <p className={styles.error}>{errors.description}</p>}
+                    <PureTextarea id="description" placeholder="Provide details about the task..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} rows={4} style={{ borderColor: errors.description ? '#dc2626' : undefined }} />
+                    {errors.description && <div className="create-task-form__error">{errors.description}</div>}
                   </div>
-
-                  {/* Team and Assignee */}
-                  <fieldset className={styles.grid}>
-                    <legend className="sr-only">Team and Assignee</legend>
-                    <div className={styles.formGroup}>
+                  <div className="create-task-form__grid">
+                    <div className="create-task-form__group">
                       <PureLabel>Team *</PureLabel>
-                      <PureSelect
-                        value={formData.teamId}
-                        onValueChange={(value: string) => handleInputChange("teamId", value)}
-                        options={teams}
-                        placeholder="Select team"
-                        style={{ borderColor: errors.teamId ? "#dc2626" : undefined }}
-                      />
-                      {errors.teamId && <p className={styles.error}>{errors.teamId}</p>}
+                      <PureSelect value={formData.teamname} onValueChange={(v) => handleInputChange("teamname", v)} options={teamOptions} placeholder="Select team" style={{ borderColor: errors.teamname ? '#dc2626' : undefined }} />
+                      {errors.teamname && <div className="create-task-form__error">{errors.teamname}</div>}
                     </div>
-
-                    <div className={styles.formGroup}>
+                    <div className="create-task-form__group">
                       <PureLabel>Assignee</PureLabel>
-                      <PureSelect
-                        value={formData.assigneeId}
-                        onValueChange={(value: string) => handleInputChange("assigneeId", value)}
-                        options={[{ value: "", label: "Unassigned" }, ...users]}
-                        placeholder="Select assignee"
-                      />
+                      <PureSelect value={formData.assigned_to_username || ''} onValueChange={(v) => handleInputChange("assigned_to_username", v || null)} options={assigneeOptions} placeholder="Select assignee" disabled={isLoadingTeamMembers || !formData.teamname} />
                     </div>
-                  </fieldset>
-
-                  {/* Priority and Status */}
-                  <fieldset className={styles.grid}>
-                    <legend className="sr-only">Task Status</legend>
-                    <div className={styles.formGroup}>
-                      <PureLabel>Status</PureLabel>
-                      <PureSelect
-                        value={formData.status}
-                        onValueChange={(value: string) => handleInputChange("status", value)}
-                        options={statuses}
-                        placeholder="Select status"
-                      />
-                    </div>
-                  </fieldset>
+                  </div>
                 </CardContent>
               </PureCard>
-            </section>
-
-            {/* Task Preview */}
-            <section aria-labelledby="task-preview-heading">
-              <PureCard>
-                <CardContent className="">
-                  <h3 id="task-preview-heading" className={styles.previewTitle}>Task Preview</h3>
-                  <dl className={styles.preview}>
-                    <div className={styles.previewItem}>
-                      <dt className={styles.previewLabel}>Title:</dt>
-                      <dd className={styles.previewValue}>{formData.title || "Untitled Task"}</dd>
-                    </div>
-                    <div className={styles.previewItem}>
-                      <dt className={styles.previewLabel}>Team:</dt>
-                      <dd className={styles.previewValue}>
-                        {teams.find((t) => t.value === formData.teamId)?.label || "No team selected"}
-                      </dd>
-                    </div>
-                    <div className={styles.previewItem}>
-                      <dt className={styles.previewLabel}>Assignee:</dt>
-                      <dd className={styles.previewValue}>
-                        {users.find((u) => u.value === formData.assigneeId)?.label || "Unassigned"}
-                      </dd>
-                    </div>
-                    <div className={styles.previewItem}>
-                      <dt className={styles.previewLabel}>Status:</dt>
-                      <dd>
-                        <PureBadge style={getStatusColor(formData.status)}>
-                          {statuses.find((s) => s.value === formData.status)?.label}
-                        </PureBadge>
-                      </dd>
-                    </div>
-                    {formData.dueDate && (
-                      <div className={styles.previewItem}>
-                        <dt className={styles.previewLabel}>Due Date:</dt>
-                        <dd className={styles.previewValue}>{formData.dueDate}</dd>
-                      </div>
-                    )}
-                    {formData.tags.length > 0 && (
-                      <div className={styles.previewItem}>
-                        <dt className={styles.previewLabel}>Tags:</dt>
-                        <dd style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                          {formData.tags.map((tag, index) => (
-                            <span key={index} className={styles.tag} style={{ fontSize: "10px" }}>
-                              {tag}
-                            </span>
-                          ))}
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                </CardContent>
-              </PureCard>
-            </section>
-
-            {/* Form Actions */}
-            <div className={styles.buttonContainer}>
-              <PureButton type="button" variant="outline" onClick={() => window.history.back()}>
-                Cancel
-              </PureButton>
-              <PureButton type="submit" disabled={isCreating} style={{ minWidth: "140px" }}>
-                {isCreating ? (
-                  <>
-                    <div className={styles.creatingSpinner} />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Save size={16} style={{ marginRight: "8px" }} />
-                    Create Task
-                  </>
-                )}
-              </PureButton>
-            </div>
-          </form>
-        </section>
-      </main>
+              <div className="create-task-form__actions">
+                <PureButton type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</PureButton>
+                <PureButton type="submit" disabled={createTaskMutation.isPending} style={{ minWidth: "140px" }}>
+                  {createTaskMutation.isPending ? (<Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />) : (<Save size={16} style={{ marginRight: "8px" }} />)}
+                  {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
+                </PureButton>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
     </PureSidebar>
   );
 }

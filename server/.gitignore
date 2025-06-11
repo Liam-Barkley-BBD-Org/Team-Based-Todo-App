@@ -1,0 +1,9 @@
+# Node junk
+package-lock.json
+node_modules/
+
+# Editor junk
+.vscode/
+
+# Environment variables
+.env

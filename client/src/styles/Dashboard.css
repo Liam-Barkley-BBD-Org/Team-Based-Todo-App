@@ -1,0 +1,120 @@
+.dashboard-main {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.dashboard-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dashboard-welcome h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111827;
+    margin: 0;
+}
+
+/* Filters section */
+.dashboard-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dashboard-filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dashboard-search-container {
+    position: relative;
+    width: 250px;
+}
+
+.dashboard-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+/* Tasks section */
+.dashboard-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dashboard-tasks h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.dashboard-task-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Individual task card styling */
+.dashboard-task-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-task-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.dashboard-task-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.dashboard-task-details h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111827;
+    margin: 0;
+}
+
+.dashboard-task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.dashboard-task-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Loading and Error states */
+.dashboard-loader,
+.dashboard-error {
+    padding: 2rem;
+    text-align: center;
+}
+
+.dashboard-error {
+    color: #dc2626; /* A shade of red */
+}
