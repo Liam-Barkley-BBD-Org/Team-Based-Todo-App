@@ -57,12 +57,49 @@ export class CdkTodoAppStack extends cdk.Stack {
       validation: CertificateValidation.fromDns(hostedZone),
     })
 
+    const generalVpc = new ec2.Vpc(this, 'generalVpc', {
+      maxAzs: 2,
+      // natGateways: 1,
+    });
+
+    const dbSecurityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
+      vpc: generalVpc,
+      description: 'Allow DB access',
+      allowAllOutbound: true,
+      securityGroupName: 'rds-security-group'
+    });
+
+    dbSecurityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.allTraffic(),
+      'Make the DB Publically accesible'
+    )
+
+    const dbInstace = new rds.DatabaseInstance(this, 'to-do-app-postgres-instance', {
+      engine: rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_17_5 }),
+      instanceIdentifier: 'to-do-app-postgres-instance',
+      vpc: generalVpc,
+      backupRetention: cdk.Duration.days(0),
+      credentials: dbCredentials,
+      multiAz: false,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      deletionProtection: false,
+      databaseName: 'todoappdb',
+      allocatedStorage: 20,
+      maxAllocatedStorage: 20,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      storageEncrypted: true,
+      deleteAutomatedBackups: true,
+      publiclyAccessible: true, //NOT FOR LONG HOE
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC
+      },
+      securityGroups: [dbSecurityGroup],
+    });
+
 
     if (!process.env.TAKEDOWN) {
-      const generalVpc = new ec2.Vpc(this, 'generalVpc', {
-        maxAzs: 2,
-        // natGateways: 1,
-      });
+
 
 
       // //FRONT-END STUFF
@@ -113,40 +150,6 @@ export class CdkTodoAppStack extends cdk.Stack {
       })
 
       // DB STUFF
-      const dbSecurityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
-        vpc: generalVpc,
-        description: 'Allow DB access',
-        allowAllOutbound: true,
-        securityGroupName: 'rds-security-group'
-      });
-
-      dbSecurityGroup.addIngressRule(
-        ec2.Peer.anyIpv4(),
-        ec2.Port.allTraffic(),
-        'Make the DB Publically accesible'
-      )
-
-      const dbInstace = new rds.DatabaseInstance(this, 'to-do-app-postgres-instance', {
-        engine: rds.DatabaseInstanceEngine.postgres({ version: rds.PostgresEngineVersion.VER_17_5 }),
-        instanceIdentifier: 'to-do-app-postgres-instance',
-        vpc: generalVpc,
-        backupRetention: cdk.Duration.days(0),
-        credentials: dbCredentials,
-        multiAz: false,
-        instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
-        deletionProtection: false,
-        databaseName: 'todoappdb',
-        allocatedStorage: 20,
-        maxAllocatedStorage: 20,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        storageEncrypted: true,
-        deleteAutomatedBackups: true,
-        publiclyAccessible: true, //NOT FOR LONG HOE
-        vpcSubnets: {
-          subnetType: ec2.SubnetType.PUBLIC
-        },
-        securityGroups: [dbSecurityGroup],
-      });
 
       // // BACK-END STUFF
       const cluster = new ecs.Cluster(this, 'FargateCluster', {
