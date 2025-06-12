@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { ChevronDown, LogOut, User, Loader2 } from "lucide-react";
+import { ChevronDown, LogOut, Loader2 } from "lucide-react";
 
 // Import the new stylesheet
 import "../styles/PageHeader.css";

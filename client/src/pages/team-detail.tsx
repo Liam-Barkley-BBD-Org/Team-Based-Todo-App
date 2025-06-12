@@ -2,21 +2,20 @@
 
 import type React from "react"
 
+import { useQuery } from "@tanstack/react-query"
+import type { AxiosError } from "axios"
+import { ArrowLeft, CheckCircle, Clock, Crown, Plus, UserPlus } from "lucide-react"
 import { useMemo, useState } from "react"
-import { CheckCircle, Clock, Plus, ArrowLeft, UserPlus, Crown } from "lucide-react"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { apiService } from "../api/apiService"
+import { AppLoader } from "../components/app-loader"
 import { PureAvatar } from "../components/pure-avatar"
 import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
+import { CardContent, PureCard } from "../components/pure-card"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
-import { useQueryClient, useQuery } from "@tanstack/react-query"
-import type { AxiosError } from "axios"
-import { useParams, useNavigate, Link } from "react-router-dom"
-import { apiService } from "../api/apiService"
 import { useAuth } from "../hooks/useAuth"
 import type { TeamMembership, Todo } from "../type/api.types"
-import { AppLoader } from "../components/app-loader"
-import { TaskDetailModal } from "../components/task-detail-modal"
 
 
 const useToast = () => {
@@ -32,15 +31,14 @@ export default function TeamView() {
   // --- Hooks and State ---
   const { teamName } = useParams<{ teamName: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { user, roles } = useAuth();
+  useAuth();
   const { toastMessage } = useToast();
 
   const [statusFilter, setStatusFilter] = useState<"all" | "open" | "completed">("all");
   const [userFilter, setUserFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("created_at");
-  const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [, setSelectedTask] = useState<Todo | null>(null);
+  const [, setIsTaskModalOpen] = useState(false);
 
   const canManageMembers = true;
 
@@ -71,11 +69,11 @@ export default function TeamView() {
       filtered = filtered.filter((task) => (statusFilter === 'open' ? task.is_open : !task.is_open));
     }
     if (userFilter !== "all") {
-      filtered = filtered.filter((task) => userFilter === "unassigned" ? !task.assigned_to_username : task.assigned_to_username === userFilter);
+      filtered = filtered.filter((task) => userFilter === "unassigned" ? !task.assigned_to_user?.username : task.assigned_to_user?.username === userFilter);
     }
     filtered.sort((a, b) => {
       if (sortBy === 'created_at') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (sortBy === 'assignee') return (a.assigned_to_username || 'Z').localeCompare(b.assigned_to_username || 'Z');
+      if (sortBy === 'assignee') return (a.assigned_to_user?.username || 'Z').localeCompare(b.assigned_to_user?.username || 'Z');
       return 0;
     });
     return filtered;
@@ -135,7 +133,7 @@ export default function TeamView() {
       </header>
       <main style={mainStyle}>
         <PureCard>
-          <CardContent>
+          <CardContent className="">
             <div style={teamHeaderStyle}>
               <div>
                 <h1 style={teamTitleStyle}>Team: {teamName}</h1>
@@ -196,14 +194,6 @@ export default function TeamView() {
             </div>
           </PureCard>
         </div>
-
-        {/* <TaskDetailModal
-          isOpen={isTaskModalOpen}
-          onClose={() => setIsTaskModalOpen(false)}
-          task={selectedTask}
-          teamName={teamName!}
-          teamMembers={memberships?.map(m => m.user.username) || []}
-        /> */}
       </main>
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </PureSidebar>

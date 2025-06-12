@@ -12,20 +12,16 @@ const SignupPage: React.FC = () => {
     const [formData, setFormData] = useState({ username: '', password: '', confirmPassword: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
     const [passwordStrength, setPasswordStrength] = useState<any>(null);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
 
     const registerMutation = useMutation<RegisterResponse, AxiosError<{ message: string }>, RegisterPayload>({
         mutationFn: apiService.auth.register,
         onSuccess: (data) => {
-            // --- THIS IS THE FIX ---
-            // 1. Create a URLSearchParams object to safely encode the token.
+           
             const params = new URLSearchParams();
             params.append('token', data.token);
 
-            // 2. Navigate to the setup page with the token as a URL parameter.
             navigate(`/setup-2fa?${params.toString()}`);
         },
     });

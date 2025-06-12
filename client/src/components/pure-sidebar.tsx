@@ -58,8 +58,7 @@ export function PureSidebar({ children }: SidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  const { user, roles } = useAuth();
-  const canManageTeams = roles.includes('TEAM_LEAD');
+  const { user } = useAuth();
 
   const { data: teamMemberships, isLoading, isError } = useQuery<TeamMembership[], AxiosError>({
     queryKey: ['userTeams', user?.username],

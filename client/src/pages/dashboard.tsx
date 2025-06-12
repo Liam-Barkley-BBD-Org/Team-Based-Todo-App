@@ -1,22 +1,21 @@
 "use client"
 
-import "../styles/Dashboard.css";
-import { useMemo, useState } from "react"
-import { Plus, Search, CheckCircle, Clock } from "lucide-react"
-import { PureButton } from "../components/pure-button"
-import { PureCard, CardContent } from "../components/pure-card"
-import { PureInput } from "../components/pure-input"
-import { PureSelect } from "../components/pure-select"
-import { PureSidebar } from "../components/pure-sidebar"
-import { Link, useNavigate } from "react-router-dom"
-import type { TeamMembership, Todo } from "../type/api.types"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useAuth } from "../hooks/useAuth"
-import type { AxiosError } from "axios"
-import { apiService } from "../api/apiService"
-import { tokenManager } from "../api/tokenManager"
+import { useQuery } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { CheckCircle, Clock, Plus, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { apiService } from "../api/apiService";
 import { AppLoader } from "../components/app-loader";
 import { PageHeader } from "../components/PageHeader";
+import { PureButton } from "../components/pure-button";
+import { CardContent, PureCard } from "../components/pure-card";
+import { PureInput } from "../components/pure-input";
+import { PureSelect } from "../components/pure-select";
+import { PureSidebar } from "../components/pure-sidebar";
+import { useAuth } from "../hooks/useAuth";
+import "../styles/Dashboard.css";
+import type { TeamMembership, Todo } from "../type/api.types";
 
 
 const getDisplayStatus = (todo: Todo): 'completed' | 'open' => {
@@ -25,13 +24,11 @@ const getDisplayStatus = (todo: Todo): 'completed' | 'open' => {
 
 export default function Dashboard() {
     const navigate = useNavigate();
-    const queryClient = useQueryClient();
     const { user } = useAuth();
 
     const [roleFilter, setRoleFilter] = useState<'assigned' | 'owned' | 'all'>("all");
     const [teamFilter, setTeamFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
 
     const { data: todos, isLoading, isError, error } = useQuery<Todo[], AxiosError>({
         queryKey: ['todos', user?.username, roleFilter],
@@ -39,7 +36,7 @@ export default function Dashboard() {
         enabled: !!user?.username,
     });
 
-    const { data: teamMemberships, isLoading: isLoadingTeams } = useQuery<TeamMembership[], AxiosError>({
+    const { data: teamMemberships} = useQuery<TeamMembership[], AxiosError>({
         queryKey: ['userTeams', user?.username],
         queryFn: () => apiService.users.getTeamsForUser(user!.username),
         enabled: !!user,
@@ -72,20 +69,6 @@ export default function Dashboard() {
         ];
     }, [todos]);
 
-    const logoutMutation = useMutation<void, AxiosError>({
-        mutationFn: apiService.auth.logout,
-        onSuccess: () => {
-            tokenManager.deleteToken();
-            localStorage.removeItem('username');
-            queryClient.clear();
-            navigate('/login');
-        },
-        onError: () => {
-            tokenManager.deleteToken();
-            localStorage.removeItem('username');
-            navigate('/login');
-        }
-    });
 
 
     const getStatusBadge = (status: 'completed' | 'open'): React.ReactElement => {
@@ -156,7 +139,7 @@ export default function Dashboard() {
                             return (
                                 <article key={task.id}>
                                     <PureCard onClick={() => navigate(`/task-details/${task.id}`)}>
-                                        <CardContent>
+                                        <CardContent className="">
                                             <div className="dashboard-task-content">
                                                 <div className="dashboard-task-left">
                                                     {getStatusIcon(displayStatus)}

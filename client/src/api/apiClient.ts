@@ -3,7 +3,7 @@ import { tokenManager } from './tokenManager';
 import type { FinalAuthResponse } from '../type/api.types';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://api.acceleratedteamproductivity.shop/api',
   withCredentials: true
 });
 
@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
       try {        
 
         const refreshResponse = await axios.post<FinalAuthResponse>(
-          'http://localhost:3000/api/auth/refresh', {}, {
+          'https://api.acceleratedteamproductivity.shop/api/auth/refresh', {}, {
              withCredentials: true,
             
           });
