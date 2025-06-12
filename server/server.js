@@ -19,30 +19,9 @@ app.use(cookieParser());
 
 app.use(
   cors({
-<<<<<<< HEAD
-    // Specify exact origins instead of wildcard
-    origin: [
-      "http://localhost:8080",  // Development
-      "https://app.acceleratedteamproductivity.shop",  // Production
-      // Add other allowed origins as needed
-    ],
-    credentials: true,
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-CSRF-Token",
-      "X-Requested-With",  // Common for AJAX requests
-    ],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    // Expose headers that frontend might need
-    exposedHeaders: ["X-CSRF-Token"],
-    // Cache preflight requests for 24 hours
-    maxAge: 86400,
-=======
-    origin: "https://app.acceleratedteamproductivity.shop/",
+    origin: ["https://app.acceleratedteamproductivity.shop", "http://localhost:5173"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
->>>>>>> origin/frontend
   })
 );
 

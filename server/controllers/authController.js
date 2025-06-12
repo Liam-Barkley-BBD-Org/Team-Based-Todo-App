@@ -136,7 +136,6 @@ const verify2FA = async (req, res, next) => {
             token: userToken,
             window: 1,
           });
-          verified = true;
           if (verified) {
             const user = await getUserById(req.user.id);
             const userRoles = await getUserRolesByUserId(user.id);

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { JWTSecret } from "./awsSecretManager";
+import { JWTSecret } from "./awsSecretManager.js";
 
 const JWT_SECRET = JWTSecret.jwtSecret;
 const JWT_EXPIRES_IN = "15m";
