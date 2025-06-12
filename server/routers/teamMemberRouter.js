@@ -35,12 +35,14 @@ teamMemberRouter.get(
 );
 teamMemberRouter.post(
   "/",
+  requireFullAuth,
   requireAnyUserRole,
   validateMiddleware(teamMemberSchema, PROPERTIES.BODY),
   postTeamMember
 );
 teamMemberRouter.delete(
   "/",
+  requireFullAuth,
   requireTeamLeadOrAdmin,
   validateMiddleware(teamMemberSchema, PROPERTIES.BODY),
   deleteTeamMember
