@@ -1,1 +1,1 @@
-export const API_URL = 'https://api.acceleratedteamproductivity.shop'
+export const API_URL = 'http://localhost:3000'
