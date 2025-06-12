@@ -6,7 +6,7 @@ const twoFaVerifySchema = Joi.object({
 
 const createUserSchema = Joi.object({
   username: Joi.string().max(32).required(),
-  password: Joi.string().max(72).required(), // bcrypt only uses first 72 bytes
+  password: Joi.string().max(72).required(),
 });
 
 const userRoleSchema = Joi.object({

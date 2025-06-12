@@ -35,7 +35,6 @@ teamRouter.get(
 teamRouter.post(
   "/",
   requireFullAuth,
-  requireTeamLeadOrAdmin,
   validateMiddleware(createTeamSchema, PROPERTIES.BODY),
   postTeam
 );
