@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { ArrowLeft, UserPlus, Users, Crown, Send, Link, Loader2 } from "lucide-react"
+import { ArrowLeft, UserPlus, Users, Crown, Send, Link } from "lucide-react"
 import "../styles/AddTeamMember.css"
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query"
 import type { AxiosError } from "axios"
@@ -43,7 +43,6 @@ export default function AddTeamMemberPage() {
         mutationFn: ({ username, teamname }) => apiService.teams.addUserToTeam(username, teamname),
         onSuccess: () => {
             showToast(`User "${email}" added to the team successfully!`);
-            // Invalidate the members query to refetch the list
             queryClient.invalidateQueries({ queryKey: ['teamMembers', teamName] });
             setEmail("");
             setErrors({});
@@ -134,7 +133,7 @@ export default function AddTeamMemberPage() {
                                 <Link to={`/team-details/${teamName}`} className="btn btn-secondary">Cancel</Link>
                                 <button type="submit" className="btn btn-primary" disabled={addMemberMutation.isPending}>
                                     {addMemberMutation.isPending ? (
-                                        <><Loader2 size={16} className="loading-spinner" /> Adding User...</>
+                                        <AppLoader/>
                                     ) : (
                                         <><Send size={16} /> Add User to Team</>
                                     )}

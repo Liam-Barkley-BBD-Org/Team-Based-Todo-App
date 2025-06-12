@@ -1,8 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenManager } from './tokenManager';
+import type { FinalAuthResponse } from '../type/api.types';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:3000/api',
+  withCredentials: true
 });
 
 apiClient.interceptors.request.use(
@@ -40,7 +42,8 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest._retry && !originalRequest.url?.endsWith('/auth/refresh')) {
+
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -52,9 +55,14 @@ apiClient.interceptors.response.use(
 
       try {        
 
-        const refreshResponse = await axios.post<{ jwt: string }>('/api/auth/refresh');
+        const refreshResponse = await axios.post<FinalAuthResponse>(
+          'http://localhost:3000/api/auth/refresh', {}, {
+             withCredentials: true,
+            
+          });
         
-        const newJwt = refreshResponse.data.jwt;
+        const newJwt = refreshResponse.data.token;
+
         tokenManager.setToken(newJwt);
 
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${newJwt}`;

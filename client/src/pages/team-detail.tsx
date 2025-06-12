@@ -42,7 +42,7 @@ export default function TeamView() {
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
-  const canManageMembers = roles.includes('TEAM_LEAD');
+  const canManageMembers = true;
 
   // --- Data Fetching with React Query ---
   const { data: memberships, isLoading: isLoadingMembers } = useQuery<TeamMembership[], AxiosError>({
@@ -177,16 +177,20 @@ export default function TeamView() {
           <PureCard>
             <div style={taskListStyle}>
               {filteredAndSortedTasks.map((task, index) => (
-                <div key={task.todoId} style={{ ...taskItemStyle, borderBottom: index === filteredAndSortedTasks.length - 1 ? "none" : "1px solid #e5e7eb" }} onClick={() => handleTaskClick(task)} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+
+                <Link to={`/task-details/${task.id}`}>
+                <div key={task.id} style={{ ...taskItemStyle, borderBottom: index === filteredAndSortedTasks.length - 1 ? "none" : "1px solid #e5e7eb" }} onClick={() => handleTaskClick(task)} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                   <div style={taskContentStyle}>
                     {task.is_open ? <Clock size={20} color="#9ca3af" /> : <CheckCircle size={20} color="#059669" />}
                     <div style={taskDetailsStyle}>
                       <div style={taskTitleStyle}><span style={{ fontSize: "16px", fontWeight: "500" }}>{task.title}</span></div>
-                      <div style={taskMetaStyle}>{task.assigned_to_username ? <span>Assigned: {task.assigned_to_username}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
+                      <div style={taskMetaStyle}>{task.assigned_to_user?.username ? <span>Assigned: {task.assigned_to_user.username}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
                     </div>
                   </div>
                   <div style={{ fontSize: "14px", color: "#6b7280" }}>{task.is_open ? "Open" : "Completed"}</div>
                 </div>
+                </Link>
+                
               ))}
               {filteredAndSortedTasks.length === 0 && <div style={emptyStateStyle}>No tasks found matching your filters.</div>}
             </div>

@@ -64,8 +64,8 @@ export default function TaskDetailPage() {
 
 
   const { data: teamMembers } = useQuery<TeamMembership[], AxiosError>({
-    queryKey: ['teamMembers', task ? task.team.name : ""],
-    queryFn: () => apiService.teams.getUsersInTeam(task!.team.name),
+    queryKey: ['teamMembers', "teamName"],
+    queryFn: () => apiService.teams.getUsersInTeam(task?.team.name ?? ''),
     enabled: !!task,
   });
 
@@ -74,8 +74,7 @@ export default function TaskDetailPage() {
     mutationFn: ({ payload }) => apiService.todos.updateTodo(task!.id, payload),
     onSuccess: (updatedData) => {
       showToast("Task updated successfully!");
-      queryClient.setQueryData(['todo', taskId], updatedData);
-      queryClient.invalidateQueries({ queryKey: ['teamTodos', updatedData.team.name] });
+      queryClient.setQueryData(['todo', taskId], {...task, ...updatedData});
       setIsEditing(false);
     },
     onError: (error) => showToast(`Update failed: ${error.message}`, 5000),
@@ -99,7 +98,9 @@ export default function TaskDetailPage() {
 
   // --- Event Handlers ---
   const handleEdit = () => setIsEditing(true);
+
   const handleCancel = () => { setEditedTask(task || null); setIsEditing(false); };
+
   const handleSave = () => {
     if (!editedTask) return;
     const payload: UpdateTodoPayload = {
@@ -109,6 +110,7 @@ export default function TaskDetailPage() {
     updateTaskMutation.mutate({ payload });
   };
   const handleDeleteConfirm = () => deleteTaskMutation.mutate();
+
   const handleFieldChange = (field: keyof UpdateTodoPayload, value: any) => {
     if (field === 'assigned_to_username') {
       const selectedUser = teamMembers?.find(m => m.user.username === value)?.user || null;
