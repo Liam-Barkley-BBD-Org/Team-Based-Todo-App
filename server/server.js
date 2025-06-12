@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["https://app.acceleratedteamproductivity.shop", "http://localhost:5173"],
+    origin: ["https://app.acceleratedteamproductivity.shop"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
