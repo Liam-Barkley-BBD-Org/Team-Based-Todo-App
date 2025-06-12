@@ -15,21 +15,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProtectedRoute } from "./layouts/ProtectedRoute.tsx";
 
 const queryClient = new QueryClient({});
-<<<<<<< HEAD
-import LoginPage from './pages/LoginPage.tsx';
-import SignupPage from './pages/SignupPage.tsx';
-import TwoFactorPage from './pages/TwoFactorPage.tsx';
-import AdminPage from './pages/AdminPage.tsx';
-import NotFound from './pages/NotFoundPage.tsx';
-import AddTeamMemberPage from './pages/AddTeamMember.tsx';
-=======
 import SignupPage from "./pages/SignupPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import NotFound from "./pages/NotFoundPage.tsx";
 import AddTeamMemberPage from "./pages/AddTeamMember.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import Setup2FAPage from "./pages/SetUp2FA.tsx";
->>>>>>> origin/frontend
 
 const router = createBrowserRouter([
   { path: "/login", element: <AuthPage /> },

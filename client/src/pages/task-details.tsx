@@ -72,7 +72,7 @@ export default function TaskDetailPage() {
     mutationFn: ({ payload }) => apiService.todos.updateTodo(task!.id, payload),
     onSuccess: (updatedData) => {
       showToast("Task updated successfully!");
-      queryClient.setQueryData(['todo', taskId], {...task, ...updatedData});
+      queryClient.setQueryData(['todo', taskId], { ...task, ...updatedData });
       setIsEditing(false);
     },
     onError: (error) => showToast(`Update failed: ${error.message}`, 5000),
@@ -336,11 +336,6 @@ export default function TaskDetailPage() {
         description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
-<<<<<<< HEAD
-      // isDestructive={true}
-      // isConfirming={deleteTaskMutation.isPending}
-=======
->>>>>>> origin/frontend
       />
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </PureSidebar>

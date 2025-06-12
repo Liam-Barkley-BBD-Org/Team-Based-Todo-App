@@ -3,14 +3,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API_URL } from '../utils/hiddenGlobals';
 
-<<<<<<< HEAD
-const LoginPage: React.FC = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        username: '',
-        password: ''
-    });
-=======
 interface LoginPageProps {
     isLoading: boolean;
     error?: string;
@@ -19,7 +11,6 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ isLoading, error, onSubmit }) => {
     const [formData, setFormData] = useState({ username: '', password: '' });
->>>>>>> origin/frontend
     const [showPassword, setShowPassword] = useState(false);
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
@@ -40,46 +31,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ isLoading, error, onSubmit }) => 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-<<<<<<< HEAD
-
-        if (!validateForm()) return;
-
-        setIsLoading(true);
-
-        try {
-            const response = await fetch(`${API_URL}/api/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ ...formData })
-            });
-
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Login failed");
-            }
-
-            const data = await response.json();
-            sessionStorage.setItem("authToken", data.token);
-            if (data.needs2FASetup) {
-                sessionStorage.setItem('needs2fa', 'true');
-            }
-            sessionStorage.setItem('userID', formData.username)
-            setIsLoading(false)
-            navigate('/2fa');
-        }
-        catch (err: any) {
-            //TODO
-            setErrors(err.message)
-        }
-        finally {
-            setIsLoading(false);
-=======
         if (validateForm()) {
             onSubmit(formData);
->>>>>>> origin/frontend
         }
     };
 

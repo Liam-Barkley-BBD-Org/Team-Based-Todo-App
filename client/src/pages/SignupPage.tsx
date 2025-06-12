@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User, UserPlus, Check } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
-<<<<<<< HEAD
-import { API_URL } from '../utils/hiddenGlobals';
-=======
 import { useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { apiService } from '../api/apiService';
 import type { RegisterResponse, RegisterPayload } from '../type/api.types';
->>>>>>> origin/frontend
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -22,7 +18,7 @@ const SignupPage: React.FC = () => {
     const registerMutation = useMutation<RegisterResponse, AxiosError<{ message: string }>, RegisterPayload>({
         mutationFn: apiService.auth.register,
         onSuccess: (data) => {
-           
+
             const params = new URLSearchParams();
             params.append('token', data.token);
 
@@ -78,47 +74,7 @@ const SignupPage: React.FC = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
-<<<<<<< HEAD
-
-        setIsLoading(true);
-
-        // // Simulate API call
-        // setTimeout(() => {
-        //     setIsLoading(false);
-        //     console.log('Signup attempt:', formData);
-        //     // Handle signup logic here
-        // }, 2000);
-
-        try {
-            const response = await fetch(`${API_URL}/api/auth/register`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-                },
-                body: JSON.stringify({ ...formData })
-            });
-
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Login failed");
-            }
-
-            // const data = await response.json();
-            // localStorage.setItem("authToken", data.token);
-            // alert("Login successful");
-        }
-        catch (err: any) {
-            //TODO
-            setErrors(err.message)
-        }
-        finally {
-            setIsLoading(false);
-        }
-=======
         registerMutation.mutate({ username: formData.username, password: formData.password });
->>>>>>> origin/frontend
     };
 
     const getStrengthColor = (score: number) => {
