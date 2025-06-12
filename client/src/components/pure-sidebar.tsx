@@ -108,11 +108,12 @@ export function PureSidebar({ children }: SidebarProps) {
         </nav>
 
         <footer className="sidebar__footer">
-          {canManageTeams && (
-            <Link to="/create-team" className="sidebar__footer-button">
+          <Link to="/create-team" className="sidebar__footer-button">
               <Plus size={16} /> Join / Create Team
             </Link>
-          )}
+          {/* {canManageTeams && (
+            
+          )} */}
         </footer>
       </aside>
 

@@ -13,24 +13,20 @@ import { AuthProtectedRoute } from './layouts/ProtectedRoute.tsx';
 
 
 const queryClient = new QueryClient({});
-import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
-import TwoFactorPage from './pages/TwoFactorPage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 import NotFound from './pages/NotFoundPage.tsx';
 import AddTeamMemberPage from './pages/AddTeamMember.tsx';
-
-// Simulate the logged-in user's ID for now
-const loggedInUserId = "123"; // TODO: Replace with context or auth
+import AuthPage from './pages/AuthPage.tsx';
+import Setup2FAPage from './pages/SetUp2FA.tsx';
 
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      { path: "/login", element: <LoginPage /> },
+      { path: "/login", element: <AuthPage /> },
       { path: "/signup", element: <SignupPage /> },
-      { path: "/2fa", element: <TwoFactorPage /> },
-      { path: "/admin-roles", element: <AdminPage /> },
+      { path: '/setup-2fa', element: <Setup2FAPage /> },
       {
         element: <AuthProtectedRoute />,
         children: [
@@ -41,10 +37,6 @@ const router = createBrowserRouter([
           {
             path: '/dashboard',
             element: <Dashboard />,
-          },
-          {
-            path: '/create-team',
-            element: <CreateTeamPage />,
           },
           {
             path: '/create-task',
@@ -65,8 +57,19 @@ const router = createBrowserRouter([
                 path: '/team-details/:teamName/add-member',
                 element: <AddTeamMemberPage />,
               },
+              {
+                path: '/create-team',
+                element: <CreateTeamPage />,
+              },
             ],
           },
+          {
+            element: <AuthProtectedRoute requiredRole="ACCESS_ADMIN" />,
+            children: [
+              { path: "/admin-roles", element: <AdminPage /> },
+            ],
+          },
+
         ],
       },
 

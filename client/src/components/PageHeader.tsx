@@ -22,10 +22,12 @@ export function PageHeader() {
         mutationFn: apiService.auth.logout,
         onSuccess: () => {
             tokenManager.deleteToken();
+            localStorage.removeItem('username');
             queryClient.clear();
             navigate('/login');
         },
-        onError: (err) => {
+        onError: () => {
+            localStorage.removeItem('username');
             tokenManager.deleteToken();
             navigate('/login');
         }
@@ -44,9 +46,9 @@ export function PageHeader() {
                     <>
                         <div className="user-menu__overlay" onClick={() => setIsMenuOpen(false)} />
                         <nav className="user-menu__dropdown">
-                            <button className="user-menu__dropdown-item">
+                            {/* <button className="user-menu__dropdown-item">
                                 <User size={16} /> Profile
-                            </button>
+                            </button> */}
                             <button className="user-menu__dropdown-item" onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
                                 {logoutMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
                                 {logoutMutation.isPending ? 'Logging out...' : 'Logout'}

@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(
 );
 
 let isRefreshing = false;
-let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: unknown) => void; }> = [];
+let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: any) => void; }> = [];
 
 const processQueue = (error: AxiosError | null, token: string | null = null) => {
   failedQueue.forEach(prom => {
@@ -33,13 +33,11 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    interface RetryConfig extends InternalAxiosRequestConfig {
-        _retry?: boolean;
-    }
+    interface RetryConfig extends InternalAxiosRequestConfig { _retry?: boolean; }
     const originalRequest: RetryConfig | undefined = error.config;
 
     if (!originalRequest) {
-        return Promise.reject(error);
+      return Promise.reject(error);
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -52,12 +50,9 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      try {
-        console.log("Session expired. Attempting to refresh token...");
-        const csrfResponse = await axios.get<{ csrfToken: string }>('/api/auth/csrf-token');
-        const refreshResponse = await axios.post<{ jwt: string }>('/api/auth/refresh', {}, {
-           headers: { 'X-CSRF-TOKEN': csrfResponse.data.csrfToken }
-        });
+      try {        
+
+        const refreshResponse = await axios.post<{ jwt: string }>('/api/auth/refresh');
         
         const newJwt = refreshResponse.data.jwt;
         tokenManager.setToken(newJwt);
@@ -76,7 +71,7 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
       }
     }
-
+    
     return Promise.reject(error);
   }
 );

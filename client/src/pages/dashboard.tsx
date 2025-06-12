@@ -9,7 +9,7 @@ import { PureInput } from "../components/pure-input"
 import { PureSelect } from "../components/pure-select"
 import { PureSidebar } from "../components/pure-sidebar"
 import { Link, useNavigate } from "react-router-dom"
-import type { Todo } from "../type/api.types"
+import type { TeamMembership, Todo } from "../type/api.types"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "../hooks/useAuth"
 import type { AxiosError } from "axios"
@@ -39,6 +39,15 @@ export default function Dashboard() {
         enabled: !!user?.username,
     });
 
+    const { data: teamMemberships, isLoading: isLoadingTeams } = useQuery<TeamMembership[], AxiosError>({
+        queryKey: ['userTeams', user?.username],
+        queryFn: () => apiService.users.getTeamsForUser(user!.username),
+        enabled: !!user,
+    });
+
+    const userHasTeams = (teamMemberships?.length ?? 0) > 0;
+
+
     const filteredTasks = useMemo<Todo[]>(() => {
         if (!todos) return [];
         let filtered = [...todos];
@@ -67,12 +76,13 @@ export default function Dashboard() {
         mutationFn: apiService.auth.logout,
         onSuccess: () => {
             tokenManager.deleteToken();
+            localStorage.removeItem('username');
             queryClient.clear();
             navigate('/login');
         },
-        onError: (err) => {
-            console.error("Logout failed", err);
+        onError: () => {
             tokenManager.deleteToken();
+            localStorage.removeItem('username');
             navigate('/login');
         }
     });
@@ -112,12 +122,19 @@ export default function Dashboard() {
             <main className="dashboard-main">
                 <section className="dashboard-welcome" aria-labelledby="welcome-heading">
                     <h1 id="welcome-heading">Welcome, {user?.username}!</h1>
-                    <Link to="/create-task">
-                        <PureButton>
+                    
+                    {
+                        userHasTeams && (
+                            <Link to="/create-task">
+                                <PureButton>
                             <Plus size={16} style={{ marginRight: "8px" }} />
                             Create Task
                         </PureButton>
                     </Link>
+                        )
+                        
+                    }
+                        
                 </section>
 
                 <section className="dashboard-filters" aria-label="Task Filters">

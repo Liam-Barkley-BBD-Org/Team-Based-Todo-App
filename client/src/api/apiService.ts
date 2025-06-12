@@ -1,4 +1,4 @@
-import type { NewTodoPayload, Todo, UpdateTodoPayload, TodoReportPeriod, UserRole, Team, TodoReport, FinalAuthResponse, LoginPayload, TempAuthResponse, TeamMembership } from "../type/api.types";
+import type { NewTodoPayload, Todo, UpdateTodoPayload, TodoReportPeriod, UserRole, Team, TodoReport, FinalAuthResponse, LoginPayload, TempAuthResponse, TeamMembership, RegisterPayload, RegisterResponse, Setup2FAResponse } from "../type/api.types";
 import apiClient from './apiClient';
 
 const authApi = {
@@ -7,7 +7,7 @@ const authApi = {
 
     verify2fa: (twoFactorCode: string, tempToken: string): Promise<FinalAuthResponse> =>
         apiClient.post<FinalAuthResponse>('/auth/2fa/verify',
-            { token: parseInt(twoFactorCode, 10) },
+            { token: twoFactorCode },
             {
                 headers: {
                     Authorization: `Bearer ${tempToken}`
@@ -15,11 +15,15 @@ const authApi = {
             }
         ).then(res => res.data),
     logout: async (): Promise<void> => {
-        const csrfResponse = await apiClient.get<{ csrfToken: string }>('/auth/csrf-token');
-        await apiClient.post('/auth/logout', {}, {
-            headers: { 'X-CSRF-TOKEN': csrfResponse.data.csrfToken }
-        });
+        await apiClient.post('/auth/logout');
     },
+    register: (payload: RegisterPayload): Promise<RegisterResponse> =>
+        apiClient.post<RegisterResponse>('/auth/register', payload).then(res => res.data),
+
+    setup2fa: (tempToken: string): Promise<Setup2FAResponse> =>
+        apiClient.post<Setup2FAResponse>('/auth/2fa/setup', {}, {
+            headers: { Authorization: `Bearer ${tempToken}` }
+        }).then(res => res.data),
 };
 
 
