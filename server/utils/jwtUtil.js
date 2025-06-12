@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import { JWTSecret } from "./awsSecretManager";
 
-const JWT_SECRET = process.env.JWT_SECRET || "superjwtsecret";
+const JWT_SECRET = JWTSecret.jwtSecret;
 const JWT_EXPIRES_IN = "15m";
 
 export function signJwt(payload) {

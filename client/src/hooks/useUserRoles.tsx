@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import type { UserRole } from '../types/Role';
-import { API_URL } from '../utils/hiddenGlobals';
 
 export const useUserRoles = (userId: string | number | null) => {
     const [roles, setRoles] = useState<UserRole[]>([]);
@@ -12,7 +11,7 @@ export const useUserRoles = (userId: string | number | null) => {
 
         const fetchRoles = async () => {
             try {
-                const res = await fetch(`${API_URL}/api/user_roles/user/${userId}`);
+                const res = await fetch(`https://api.acceleratedteamproductivity.shop/api/user_roles/user/${userId}`);
                 if (!res.ok) {
                     throw new Error("Network response was not ok");
                 }

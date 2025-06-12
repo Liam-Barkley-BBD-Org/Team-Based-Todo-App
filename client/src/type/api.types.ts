@@ -60,12 +60,16 @@ export interface LoginPayload {
 }
 
 export interface TempAuthResponse {
-  tempToken: string;
+  success: boolean;
+  message: string;
+  token: string;
+  needs2FASetup: boolean;
 }
 
 export interface FinalAuthResponse {
-  jwt: string;
-  refreshToken: string; // As per your docs
+  success: boolean;
+  message: string;
+  token: string;
 }
 
 export interface TeamDetail {
@@ -83,6 +87,28 @@ export interface TeamMembership {
     id: number;
     user: UserSummary;
     team: TeamDetail;
+}
+
+export interface RegisterPayload {
+  username: string;
+  password: string;
+}
+export interface RegisterResponse {
+  tempToken: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  user: UserSummary;
+  token: string;
+}
+
+export interface Setup2FAResponse {
+  success: boolean;
+  message: string;
+  qr: string;
+  manualCode: string;
 }
 
 export type TodoReportPeriod = 'weeks' | 'months' | 'years';

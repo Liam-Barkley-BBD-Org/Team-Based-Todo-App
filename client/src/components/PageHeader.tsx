@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { ChevronDown, LogOut, User, Loader2 } from "lucide-react";
+import { ChevronDown, LogOut, Loader2 } from "lucide-react";
 
 // Import the new stylesheet
 import "../styles/PageHeader.css";
@@ -22,11 +22,17 @@ export function PageHeader() {
         mutationFn: apiService.auth.logout,
         onSuccess: () => {
             tokenManager.deleteToken();
+            localStorage.removeItem('username');
             queryClient.clear();
             navigate('/login');
         },
+<<<<<<< HEAD
         onError: (err) => {
             console.error(err)
+=======
+        onError: () => {
+            localStorage.removeItem('username');
+>>>>>>> origin/frontend
             tokenManager.deleteToken();
             navigate('/login');
         }
@@ -45,9 +51,9 @@ export function PageHeader() {
                     <>
                         <div className="user-menu__overlay" onClick={() => setIsMenuOpen(false)} />
                         <nav className="user-menu__dropdown">
-                            <button className="user-menu__dropdown-item">
+                            {/* <button className="user-menu__dropdown-item">
                                 <User size={16} /> Profile
-                            </button>
+                            </button> */}
                             <button className="user-menu__dropdown-item" onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
                                 {logoutMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
                                 {logoutMutation.isPending ? 'Logging out...' : 'Logout'}

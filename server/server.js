@@ -19,6 +19,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
+<<<<<<< HEAD
     // Specify exact origins instead of wildcard
     origin: [
       "http://localhost:8080",  // Development
@@ -37,6 +38,11 @@ app.use(
     exposedHeaders: ["X-CSRF-Token"],
     // Cache preflight requests for 24 hours
     maxAge: 86400,
+=======
+    origin: "https://app.acceleratedteamproductivity.shop/",
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+>>>>>>> origin/frontend
   })
 );
 
@@ -61,5 +67,5 @@ app.use(errorHandler);
 
 const PORT = process.env.API_PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on https://api.acceleratedteamproductivity.shop/:${PORT}`);
 });

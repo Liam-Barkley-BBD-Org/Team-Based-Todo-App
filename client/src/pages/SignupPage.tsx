@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User, UserPlus, Check } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
+<<<<<<< HEAD
 import { API_URL } from '../utils/hiddenGlobals';
+=======
+import { useMutation } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
+import { apiService } from '../api/apiService';
+import type { RegisterResponse, RegisterPayload } from '../type/api.types';
+>>>>>>> origin/frontend
 
 const SignupPage: React.FC = () => {
-    const [formData, setFormData] = useState({
-        username: '',
-        password: '',
-        confirmPassword: ''
-    });
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({ username: '', password: '', confirmPassword: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState<any>(null);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
+    const registerMutation = useMutation<RegisterResponse, AxiosError<{ message: string }>, RegisterPayload>({
+        mutationFn: apiService.auth.register,
+        onSuccess: (data) => {
+           
+            const params = new URLSearchParams();
+            params.append('token', data.token);
+
+            navigate(`/setup-2fa?${params.toString()}`);
+        },
+    });
     useEffect(() => {
         if (formData.password) {
             const result = zxcvbn(formData.password);
@@ -59,10 +72,13 @@ const SignupPage: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const apiError = registerMutation.error?.response?.data?.message || registerMutation.error?.message;
 
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
         if (!validateForm()) return;
+<<<<<<< HEAD
 
         setIsLoading(true);
 
@@ -100,6 +116,9 @@ const SignupPage: React.FC = () => {
         finally {
             setIsLoading(false);
         }
+=======
+        registerMutation.mutate({ username: formData.username, password: formData.password });
+>>>>>>> origin/frontend
     };
 
     const getStrengthColor = (score: number) => {
@@ -238,7 +257,6 @@ const SignupPage: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Confirm Password */}
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
                                 Confirm Password
@@ -279,25 +297,13 @@ const SignupPage: React.FC = () => {
                                 </p>
                             )}
                         </div>
+                        {apiError && <p className="text-sm text-red-600 text-center">{apiError}</p>}
 
-                        {/* Submit */}
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center justify-center">
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                    Creating account...
-                                </div>
-                            ) : (
-                                'Create Account'
-                            )}
+                        <button type="submit" disabled={registerMutation.isPending} className="w-full ...">
+                            {registerMutation.isPending ? 'Creating account...' : 'Create Account'}
                         </button>
                     </form>
 
-                    {/* Sign In */}
                     <footer className="mt-8 text-center">
                         <p className="text-gray-600">
                             Already have an account?{' '}

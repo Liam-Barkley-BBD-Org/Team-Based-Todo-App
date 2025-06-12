@@ -62,8 +62,8 @@ export default function TaskDetailPage() {
 
 
   const { data: teamMembers } = useQuery<TeamMembership[], AxiosError>({
-    queryKey: ['teamMembers', task ? task.team.name : ""],
-    queryFn: () => apiService.teams.getUsersInTeam(task!.team.name),
+    queryKey: ['teamMembers', "teamName"],
+    queryFn: () => apiService.teams.getUsersInTeam(task?.team.name ?? ''),
     enabled: !!task,
   });
 
@@ -72,8 +72,7 @@ export default function TaskDetailPage() {
     mutationFn: ({ payload }) => apiService.todos.updateTodo(task!.id, payload),
     onSuccess: (updatedData) => {
       showToast("Task updated successfully!");
-      queryClient.setQueryData(['todo', taskId], updatedData);
-      queryClient.invalidateQueries({ queryKey: ['teamTodos', updatedData.team.name] });
+      queryClient.setQueryData(['todo', taskId], {...task, ...updatedData});
       setIsEditing(false);
     },
     onError: (error) => showToast(`Update failed: ${error.message}`, 5000),
@@ -97,7 +96,9 @@ export default function TaskDetailPage() {
 
   // --- Event Handlers ---
   const handleEdit = () => setIsEditing(true);
+
   const handleCancel = () => { setEditedTask(task || null); setIsEditing(false); };
+
   const handleSave = () => {
     if (!editedTask) return;
     const payload: UpdateTodoPayload = {
@@ -107,7 +108,8 @@ export default function TaskDetailPage() {
     updateTaskMutation.mutate({ payload });
   };
   const handleDeleteConfirm = () => deleteTaskMutation.mutate();
-  const handleFieldChange = (field: keyof UpdateTodoPayload, value: any) => {
+
+  const handleFieldChange = (field: keyof UpdateTodoPayload, value: unknown) => {
     if (field === 'assigned_to_username') {
       const selectedUser = teamMembers?.find(m => m.user.username === value)?.user || null;
       setEditedTask(prev => prev ? { ...prev, assigned_to_user: selectedUser } : null);
@@ -334,8 +336,11 @@ export default function TaskDetailPage() {
         description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
+<<<<<<< HEAD
       // isDestructive={true}
       // isConfirming={deleteTaskMutation.isPending}
+=======
+>>>>>>> origin/frontend
       />
       <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
     </PureSidebar>

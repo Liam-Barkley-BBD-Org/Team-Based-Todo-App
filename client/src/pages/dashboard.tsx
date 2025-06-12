@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
@@ -15,7 +15,7 @@ import { PureSelect } from "../components/pure-select";
 import { PureSidebar } from "../components/pure-sidebar";
 import { useAuth } from "../hooks/useAuth";
 import "../styles/Dashboard.css";
-import type { Todo } from "../type/api.types";
+import type { TeamMembership, Todo } from "../type/api.types";
 
 
 const getDisplayStatus = (todo: Todo): 'completed' | 'open' => {
@@ -24,19 +24,27 @@ const getDisplayStatus = (todo: Todo): 'completed' | 'open' => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  // const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const [roleFilter, setRoleFilter] = useState<'assigned' | 'owned' | 'all'>("all");
   const [teamFilter, setTeamFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
+  const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
 
   const { data: todos, isLoading, isError, error } = useQuery<Todo[], AxiosError>({
     queryKey: ['todos', user?.username, roleFilter],
     queryFn: () => apiService.todos.getTodosForUser(user!.username, roleFilter),
     enabled: !!user?.username,
   });
+
+  const { data: teamMemberships } = useQuery<TeamMembership[], AxiosError>({
+    queryKey: ['userTeams', user?.username],
+    queryFn: () => apiService.users.getTeamsForUser(user!.username),
+    enabled: !!user,
+  });
+
+  const userHasTeams = (teamMemberships?.length ?? 0) > 0;
+
 
   const filteredTasks = useMemo<Todo[]>(() => {
     if (!todos) return [];
@@ -62,19 +70,6 @@ export default function Dashboard() {
     ];
   }, [todos]);
 
-  // const logoutMutation = useMutation<void, AxiosError>({
-  //   mutationFn: apiService.auth.logout,
-  //   onSuccess: () => {
-  //     tokenManager.deleteToken();
-  //     queryClient.clear();
-  //     navigate('/login');
-  //   },
-  //   onError: (err) => {
-  //     console.error("Logout failed", err);
-  //     tokenManager.deleteToken();
-  //     navigate('/login');
-  //   }
-  // });
 
 
   const getStatusBadge = (status: 'completed' | 'open'): React.ReactElement => {
@@ -111,12 +106,19 @@ export default function Dashboard() {
       <main className="dashboard-main">
         <section className="dashboard-welcome" aria-labelledby="welcome-heading">
           <h1 id="welcome-heading">Welcome, {user?.username}!</h1>
-          <Link to="/create-task">
-            <PureButton>
-              <Plus size={16} style={{ marginRight: "8px" }} />
-              Create Task
-            </PureButton>
-          </Link>
+
+          {
+            userHasTeams && (
+              <Link to="/create-task">
+                <PureButton>
+                  <Plus size={16} style={{ marginRight: "8px" }} />
+                  Create Task
+                </PureButton>
+              </Link>
+            )
+
+          }
+
         </section>
 
         <section className="dashboard-filters" aria-label="Task Filters">
@@ -158,7 +160,7 @@ export default function Dashboard() {
               )
             }) : (
               <PureCard>
-                <CardContent className="" style={{ padding: "32px", textAlign: "center" }}>
+                <CardContent style={{ padding: "32px", textAlign: "center" }} className="">
                   <p style={{ color: "#6b7280", margin: 0 }}>No tasks found matching your filters.</p>
                 </CardContent>
               </PureCard>

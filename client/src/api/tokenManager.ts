@@ -1,7 +1,7 @@
 let inMemoryToken: string | null = null;
 let tokenExpiryTimeout: NodeJS.Timeout | null = null;
 
-const TOKEN_LIFETIME_MS = 14 * 60 * 1000; // Refresh before a 15 min expiry
+const TOKEN_LIFETIME_MS = 14 * 60 * 1000;
 
 export const tokenManager = {
   getToken: (): string | null => {

@@ -15,16 +15,18 @@ type AuthHookReturn = {
 
 export const useAuth = (): AuthHookReturn => {
   const token = tokenManager.getToken();
+  const storedUsername = localStorage.getItem('username');
+
 
   if (!token) {
-    return { isAuthenticated: true, user: { username: "San" }, roles: ['TODO_USER', 'TEAM_LEAD'] };
+    return { isAuthenticated: false, user: null, roles: []};
   }
 
   try {
     const decoded: DecodedToken = jwtDecode(token);
     return {
       isAuthenticated: true,
-      user: { username: decoded.username },
+      user: { username: storedUsername },
       roles: decoded.roles || [],
     };
   } catch (error) {

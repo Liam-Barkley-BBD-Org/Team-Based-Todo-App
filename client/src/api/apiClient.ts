@@ -1,8 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenManager } from './tokenManager';
+import type { FinalAuthResponse } from '../type/api.types';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://api.acceleratedteamproductivity.shop/api',
+  withCredentials: true
 });
 
 apiClient.interceptors.request.use(
@@ -17,7 +19,7 @@ apiClient.interceptors.request.use(
 );
 
 let isRefreshing = false;
-let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: unknown) => void; }> = [];
+let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: any) => void; }> = [];
 
 const processQueue = (error: AxiosError | null, token: string | null = null) => {
   failedQueue.forEach(prom => {
@@ -33,16 +35,15 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    interface RetryConfig extends InternalAxiosRequestConfig {
-        _retry?: boolean;
-    }
+    interface RetryConfig extends InternalAxiosRequestConfig { _retry?: boolean; }
     const originalRequest: RetryConfig | undefined = error.config;
 
     if (!originalRequest) {
-        return Promise.reject(error);
+      return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest._retry && !originalRequest.url?.endsWith('/auth/refresh')) {
+
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -52,14 +53,16 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      try {
-        console.log("Session expired. Attempting to refresh token...");
-        const csrfResponse = await axios.get<{ csrfToken: string }>('/api/auth/csrf-token');
-        const refreshResponse = await axios.post<{ jwt: string }>('/api/auth/refresh', {}, {
-           headers: { 'X-CSRF-TOKEN': csrfResponse.data.csrfToken }
-        });
+      try {        
+
+        const refreshResponse = await axios.post<FinalAuthResponse>(
+          'https://api.acceleratedteamproductivity.shop/api/auth/refresh', {}, {
+             withCredentials: true,
+            
+          });
         
-        const newJwt = refreshResponse.data.jwt;
+        const newJwt = refreshResponse.data.token;
+
         tokenManager.setToken(newJwt);
 
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${newJwt}`;
@@ -76,7 +79,7 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
       }
     }
-
+    
     return Promise.reject(error);
   }
 );
