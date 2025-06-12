@@ -29,13 +29,13 @@ teamMemberRouter.get(
 teamMemberRouter.get(
   "/team/:name",
   requireFullAuth,
-  requireTeamLeadOrAdmin,
+  requireAnyUserRole,
   validateMiddleware(getByNameSchema, PROPERTIES.PARAMS),
   getTeamMembers
 );
 teamMemberRouter.post(
   "/",
-  requireTeamLeadOrAdmin,
+  requireAnyUserRole,
   validateMiddleware(teamMemberSchema, PROPERTIES.BODY),
   postTeamMember
 );

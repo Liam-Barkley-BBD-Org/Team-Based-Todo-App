@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from "cors";
-import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import errorHandler from './middlewares/errorHandlerMiddleware.js';
 
@@ -13,7 +12,6 @@ import { teamMemberRouter } from './routers/teamMemberRouter.js';
 import { todoRouter } from './routers/todoRouter.js';
 import { authRouter } from "./routers/authRouter.js";
 
-dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -21,13 +19,38 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+<<<<<<< HEAD
+    // Specify exact origins instead of wildcard
+    origin: [
+      "http://localhost:8080",  // Development
+      "https://app.acceleratedteamproductivity.shop",  // Production
+      // Add other allowed origins as needed
+    ],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-CSRF-Token",
+      "X-Requested-With",  // Common for AJAX requests
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    // Expose headers that frontend might need
+    exposedHeaders: ["X-CSRF-Token"],
+    // Cache preflight requests for 24 hours
+    maxAge: 86400,
+=======
+    origin: "https://app.acceleratedteamproductivity.shop/",
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+>>>>>>> origin/frontend
   })
 );
 
 // routes
+app.get('/', (req, res) => {
+  res.status(200).send('OK')
+})
+
 app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/teams', teamRouter);
@@ -44,5 +67,5 @@ app.use(errorHandler);
 
 const PORT = process.env.API_PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on https://api.acceleratedteamproductivity.shop/:${PORT}`);
 });

@@ -1,16 +1,36 @@
-import dotenv from 'dotenv';
+import { DBSecret } from "./utils/awsSecretManager.js"
 
-dotenv.config();
+//HOMIES PUT YOUR CUSTOM DB CONNECTIONS HERE
+let knexEnv = {
+  client: 'pg',
+  connection: {
+    host: 'localhost',
+    port: 5432,
+    database: 'todoapp',
+    user: 'username',
+    password: 'password',
+  }
+}
 
-export default {
-  development: {
+if (process.env.NODE_ENV == 'production') {
+  knexEnv = {
     client: 'pg',
     connection: {
-      host: process.env.DATABASE_HOST,
-      port: Number(process.env.DATABASE_PORT),
-      database: process.env.DATABASE_NAME,
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
+      host: DBSecret.host,
+      port: Number(DBSecret.port),
+      database: DBSecret.dbname,
+      user: DBSecret.username,
+      password: DBSecret.password,
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
     },
-  },
-};
+    migrations: {
+      directory: './migrations',
+      extension: 'js',
+    }
+  }
+}
+
+export default knexEnv
