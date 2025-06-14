@@ -1,9 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenManager } from './tokenManager';
 import type { FinalAuthResponse } from '../type/api.types';
+import { API_URL } from '../utils/hiddenGlobals';
 
 const apiClient = axios.create({
-  baseURL: 'https://api.acceleratedteamproductivity.shop/api',
+  baseURL: `${API_URL}/api`,
   withCredentials: true
 });
 
@@ -56,7 +57,7 @@ apiClient.interceptors.response.use(
       try {        
 
         const refreshResponse = await axios.post<FinalAuthResponse>(
-          'https://api.acceleratedteamproductivity.shop/api/auth/refresh', {}, {
+          `${API_URL}/api/auth/refresh`, {}, {
              withCredentials: true,
             
           });

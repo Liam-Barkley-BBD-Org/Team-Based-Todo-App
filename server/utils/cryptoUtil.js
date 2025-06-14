@@ -1,10 +1,10 @@
 import crypto from "crypto";
 import dotenv from "dotenv";
-import { AESKeySecret } from "./awsSecretManager.js";
+
 dotenv.config();
 
 const algorithm = "aes-256-gcm";
-const key = Buffer.from(AESKeySecret.key, "base64").slice(0, 32);
+const key = Buffer.from(process.env.ENCRYPTION_KEY, "utf-8").slice(0, 32);
 
 export function encrypt(text) {
   const iv = crypto.randomBytes(12);
@@ -14,7 +14,6 @@ export function encrypt(text) {
     cipher.update(text, "utf8"),
     cipher.final(),
   ]);
-
   const authTag = cipher.getAuthTag();
   return Buffer.concat([iv, authTag, encrypted]).toString("base64");
 }
