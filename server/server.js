@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from "cors";
-import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+
 import errorHandler from './middlewares/errorHandlerMiddleware.js';
 
 import { HTTP_STATUS } from "./utils/httpStatusUtil.js";
@@ -21,13 +23,23 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:5173"],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: "Too many requests, please try again later.",
+}));
+
 // routes
+app.get('/', (req, res) => {
+  res.status(200).send('OK')
+})
+
 app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/teams', teamRouter);

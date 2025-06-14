@@ -90,9 +90,9 @@ const postTeamMember = async (req, res, next) => {
             status = HTTP_STATUS.CONFLICT;
             response = { error: 'Could not add user to team' }
         } else {
-            const team = await createTeamMember({ team_id: team.id, user_id: user.id });
+            let teamMember = await createTeamMember({ team_id: team.id, user_id: user.id });
             status = HTTP_STATUS.CREATED;
-            response = team;
+            response = teamMember;
         }
 
         res.status(status).json(response);

@@ -38,7 +38,7 @@ todoRouter.get(
 todoRouter.get(
   "/team/:name",
   requireFullAuth,
-  requireTeamLeadOrAdmin,
+  requireAnyUserRole,
   validateMiddleware(getByNameSchema, PROPERTIES.PARAMS),
   getTeamTodos
 );

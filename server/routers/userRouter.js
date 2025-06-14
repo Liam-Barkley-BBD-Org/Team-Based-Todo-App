@@ -3,8 +3,7 @@ import validateMiddleware, {
   PROPERTIES,
 } from "../middlewares/validateMiddleware.js";
 import { createUserSchema } from "../schemas/bodySchemas.js";
-import { getByNameSchema } from "../schemas/paramSchemas.js";
-import { postUser, getUser } from "../controllers/userController.js";
+import { postUser } from "../controllers/userController.js";
 import {
   requireFullAuth,
   requireAnyUserRole,
@@ -14,13 +13,7 @@ import {
 export const userRouter = express.Router();
 
 /* User routes */
-userRouter.get(
-  "/:name",
-  requireFullAuth,
-  requireAnyUserRole,
-  validateMiddleware(getByNameSchema, PROPERTIES.PARAMS),
-  getUser
-);
+
 userRouter.post(
   "/",
   requireFullAuth,
