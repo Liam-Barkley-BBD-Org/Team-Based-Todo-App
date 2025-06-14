@@ -1,17 +1,35 @@
 # Team-Based-Todo-App
 
-## API Setup
+## Running the app locally for testing/pentesting
 
-Set the following variables in a .env file (inside "server/")
+1. Create a postgresql database titled "todo_app". Note that knex will run migrations for you when starting up the server. Please refer to the environment variables below to connect to your local db instance.
+
+2. Set the following variables in a .env file (inside "server/")
 
 - API_PORT=3000
-- NODE_ENVIRONMENT=development
 
-- DATABASE_USER=******
-- DATABASE_HOST=******
-- DATABASE_NAME=******
-- DATABASE_PASSWORD=******
-- DATABASE_PORT=******
+- DATABASE_USER=postgres
+- DATABASE_HOST=localhost
+- DATABASE_NAME=todo_app
+- DATABASE_PASSWORD=any_password
+- DATABASE_PORT=5432
+
+- JWT_SECRET="supersecretlocaltestingkey"
+- ENCRYPTION_KEY=12345678901234567890123456789012 
+
+3. Start the server
+
+```
+$ cd server
+$ npm run dev
+```
+
+4. Run the client
+
+```
+$ cd client
+$ npm run dev
+```
 
 ## Npm libraries used (and audited with npm)
 
