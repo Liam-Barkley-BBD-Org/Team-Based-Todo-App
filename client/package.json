@@ -4,13 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-    "dev": "vite --port 8080",
-    "build": "tsc -b && vite build",
-=======
     "dev": "vite",
     "build": "vite build",
->>>>>>> origin/frontend
     "lint": "eslint .",
     "preview": "vite preview"
   },

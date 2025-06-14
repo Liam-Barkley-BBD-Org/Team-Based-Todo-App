@@ -130,13 +130,12 @@ const verify2FA = async (req, res, next) => {
       } else {
         if (userauth.encrypted_2fa_secret) {
           const secret = decrypt(userauth.encrypted_2fa_secret);
-          let verified = speakeasy.totp.verify({
+          const verified = speakeasy.totp.verify({
             secret: secret,
             encoding: "base32",
             token: userToken,
             window: 1,
           });
-          verified = true;
           if (verified) {
             const user = await getUserById(req.user.id);
             const userRoles = await getUserRolesByUserId(user.id);

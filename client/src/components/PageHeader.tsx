@@ -26,13 +26,8 @@ export function PageHeader() {
             queryClient.clear();
             navigate('/login');
         },
-<<<<<<< HEAD
-        onError: (err) => {
-            console.error(err)
-=======
         onError: () => {
             localStorage.removeItem('username');
->>>>>>> origin/frontend
             tokenManager.deleteToken();
             navigate('/login');
         }

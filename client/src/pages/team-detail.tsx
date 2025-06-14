@@ -30,27 +30,14 @@ export default function TeamView() {
   // --- Hooks and State ---
   const { teamName } = useParams<{ teamName: string }>();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  // const queryClient = useQueryClient();
-  const { user, roles } = useAuth();
-=======
   useAuth();
->>>>>>> origin/frontend
   const { toastMessage } = useToast();
 
   const [statusFilter, setStatusFilter] = useState<"all" | "open" | "completed">("all");
   const [userFilter, setUserFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("created_at");
-<<<<<<< HEAD
-  const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  isTaskModalOpen
-  selectedTask
-  user
-=======
   const [, setSelectedTask] = useState<Todo | null>(null);
   const [, setIsTaskModalOpen] = useState(false);
->>>>>>> origin/frontend
 
   const canManageMembers = true;
 
@@ -81,19 +68,11 @@ export default function TeamView() {
       filtered = filtered.filter((task) => (statusFilter === 'open' ? task.is_open : !task.is_open));
     }
     if (userFilter !== "all") {
-<<<<<<< HEAD
-      filtered = filtered.filter((task: any) => userFilter === "unassigned" ? !task.assigned_to_user : task.assigned_to_user === userFilter);
-=======
       filtered = filtered.filter((task) => userFilter === "unassigned" ? !task.assigned_to_user?.username : task.assigned_to_user?.username === userFilter);
->>>>>>> origin/frontend
     }
     filtered.sort((a: any, b) => {
       if (sortBy === 'created_at') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-<<<<<<< HEAD
-      if (sortBy === 'assignee') return (a.assigned_to_user || 'Z').localeCompare(b.assigned_to_user || 'Z');
-=======
       if (sortBy === 'assignee') return (a.assigned_to_user?.username || 'Z').localeCompare(b.assigned_to_user?.username || 'Z');
->>>>>>> origin/frontend
       return 0;
     });
     return filtered;
@@ -194,30 +173,21 @@ export default function TeamView() {
           </div>
           <PureCard>
             <div style={taskListStyle}>
-<<<<<<< HEAD
-              {filteredAndSortedTasks.map((task: any, index) => (
-                <div key={task.todoId} style={{ ...taskItemStyle, borderBottom: index === filteredAndSortedTasks.length - 1 ? "none" : "1px solid #e5e7eb" }} onClick={() => handleTaskClick(task)} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
-=======
               {filteredAndSortedTasks.map((task, index) => (
 
                 <Link to={`/task-details/${task.id}`}>
-                <div key={task.id} style={{ ...taskItemStyle, borderBottom: index === filteredAndSortedTasks.length - 1 ? "none" : "1px solid #e5e7eb" }} onClick={() => handleTaskClick(task)} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
->>>>>>> origin/frontend
-                  <div style={taskContentStyle}>
-                    {task.is_open ? <Clock size={20} color="#9ca3af" /> : <CheckCircle size={20} color="#059669" />}
-                    <div style={taskDetailsStyle}>
-                      <div style={taskTitleStyle}><span style={{ fontSize: "16px", fontWeight: "500" }}>{task.title}</span></div>
-<<<<<<< HEAD
-                      <div style={taskMetaStyle}>{task.assigned_to_user ? <span>Assigned: {task.assigned_to_user}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
-=======
-                      <div style={taskMetaStyle}>{task.assigned_to_user?.username ? <span>Assigned: {task.assigned_to_user.username}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
->>>>>>> origin/frontend
+                  <div key={task.id} style={{ ...taskItemStyle, borderBottom: index === filteredAndSortedTasks.length - 1 ? "none" : "1px solid #e5e7eb" }} onClick={() => handleTaskClick(task)} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+                    <div style={taskContentStyle}>
+                      {task.is_open ? <Clock size={20} color="#9ca3af" /> : <CheckCircle size={20} color="#059669" />}
+                      <div style={taskDetailsStyle}>
+                        <div style={taskTitleStyle}><span style={{ fontSize: "16px", fontWeight: "500" }}>{task.title}</span></div>
+                        <div style={taskMetaStyle}>{task.assigned_to_user?.username ? <span>Assigned: {task.assigned_to_user.username}</span> : <span style={{ color: "#f59e0b" }}>Unassigned</span>}</div>
+                      </div>
                     </div>
+                    <div style={{ fontSize: "14px", color: "#6b7280" }}>{task.is_open ? "Open" : "Completed"}</div>
                   </div>
-                  <div style={{ fontSize: "14px", color: "#6b7280" }}>{task.is_open ? "Open" : "Completed"}</div>
-                </div>
                 </Link>
-                
+
               ))}
               {filteredAndSortedTasks.length === 0 && <div style={emptyStateStyle}>No tasks found matching your filters.</div>}
             </div>
