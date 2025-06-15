@@ -19,6 +19,7 @@ const getTodo = async (req, res, next) => {
     try {
         const { id } = req.params;
         const todo = await getTodoById(id);
+        const requestUserId = req.user.id;
         let status, response;
 
         if (todo) {
@@ -32,13 +33,19 @@ const getTodo = async (req, res, next) => {
                 ? await getTeamById(todo.team_id)
                 : null;
 
-            status = HTTP_STATUS.OK;
-            response = {
-                ...todo,
-                team,
-                created_by_user: creator,
-                assigned_to_user: assignedUser
-            };
+            const membership = await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: requestUserId });
+            if (!membership) {
+                status = HTTP_STATUS.FORBIDDEN;
+                response = { };
+            } else {
+                status = HTTP_STATUS.OK;
+                response = {
+                    ...todo,
+                    team,
+                    created_by_user: creator,
+                    assigned_to_user: assignedUser
+                    };
+            }
         } else {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
@@ -53,6 +60,7 @@ const getTodo = async (req, res, next) => {
 const getTeamTodos = async (req, res, next) => {
     try {
         const { name } = req.params;
+        const userId = req.user.id;
         let status, response;
 
         const team = await getTeamByName(name);
@@ -60,27 +68,33 @@ const getTeamTodos = async (req, res, next) => {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
         } else {
-            const todos = await getTodosByTeamId(team.id);
+            const membership = await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: userId });
 
-            const mappedTodos = await Promise.all(
-                todos.map(async (todo) => {
-                    const assignedUser = todo.assigned_user_id
-                        ? await getUserById(todo.assigned_user_id)
-                        : null;
+            if (!membership) {
+                status = HTTP_STATUS.FORBIDDEN;
+                response = { };
+            } else {
+                const todos = await getTodosByTeamId(team.id);
+                const mappedTodos = await Promise.all(
+                    todos.map(async (todo) => {
+                        const assignedUser = todo.assigned_user_id
+                            ? await getUserById(todo.assigned_user_id)
+                            : null;
 
-                    const creator = await getUserById(todo.created_by_user_id);
+                        const creator = await getUserById(todo.created_by_user_id);
 
-                    return {
-                        ...todo,
-                        team,
-                        created_by_user: creator,
-                        assigned_to_user: assignedUser
-                    };
-                })
-            );
+                        return {
+                            ...todo,
+                            team,
+                            created_by_user: creator,
+                            assigned_to_user: assignedUser
+                        };
+                    })
+                );
 
-            status = HTTP_STATUS.OK;
-            response = mappedTodos;
+                status = HTTP_STATUS.OK;
+                response = mappedTodos;
+            }
         }
 
         res.status(status).json(response);
@@ -99,6 +113,9 @@ const getUserTodos = async (req, res, next) => {
         if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
+        } else if (!req.user?.id || req.user.id !== user.id) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
         } else {
             let todos;
             switch (role) {
@@ -223,12 +240,20 @@ const patchTodo = async (req, res, next) => {
             }
         }
 
-        if (Object.keys(fields).length === 0) {
-            status = HTTP_STATUS.BAD_REQUEST;
-            response = { error: 'No fields provided' };
-        } else if (!todo) {
+        const currentUserId = req.user.id;
+        const currentMembership = todo
+            ? await getTeamMemberByTeamIdAndUserId({ team_id: todo.team_id, user_id: currentUserId })
+            : null;
+
+        if (!todo) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
+        } else if (!currentMembership) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
+        } else if (Object.keys(fields).length === 0) {
+            status = HTTP_STATUS.BAD_REQUEST;
+            response = { error: 'No fields provided' };
         } else if (!assignedToUserValid) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
@@ -264,15 +289,22 @@ const postTodo = async (req, res, next) => {
         const team = await getTeamByName(teamname);
         let status, response;
 
+        const creatorMembership = createdByUser && team
+            ? await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: createdByUser.id })
+            : null;
+
         if (!createdByUser) {
-            status = HTTP_STATUS.NOT_FOUND;
-            response = { error: 'User not found' };
-        } else if (assigned_to_username && !assignedToUser) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
         } else if (!team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
+        } else if (!creatorMembership) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
+        } else if (assigned_to_username && !assignedToUser) {
+            status = HTTP_STATUS.NOT_FOUND;
+            response = { error: 'User not found' };
         } else if (assignedToUser && !(await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: assignedToUser.id }))) {
             status = HTTP_STATUS.BAD_REQUEST;
             response = { error: 'Cannot assign to this user' };
@@ -308,17 +340,25 @@ const postTodo = async (req, res, next) => {
 const deleteTodo = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const todo = await getTodoById(id);
+        const userId = req.user.id;
         let status, response;
 
-        if (!(await getTodoById(id))) {
+        const membership = todo ? await getTeamMemberByTeamIdAndUserId({ team_id: todo.team_id, user_id: userId }): null;
+
+        if (!todo) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Todo not found' };
+        } else if (!membership) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
         } else {
-            const deleted = await softDeleteTodo(id);
+            await softDeleteTodo(id);
             status = HTTP_STATUS.OK;
+            response = {};
         }
 
-        res.status(status).json();
+        res.status(status).json(response);
     } catch (error) {
         next(error);
     }

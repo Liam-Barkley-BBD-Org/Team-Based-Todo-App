@@ -20,6 +20,9 @@ const getUserTeams = async (req, res, next) => {
         if (!user) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User not found' };
+        } else if (!req.user?.id || req.user.id !== user.id) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
         } else {
             const userTeams = await getTeamsByUserId(user.id);
             const mappedUserTeams = await Promise.all(
@@ -46,6 +49,8 @@ const getUserTeams = async (req, res, next) => {
 const getTeamMembers = async (req, res, next) => {
     try {
         const { name } = req.params;
+        const userId = req.user.id;
+
         let status, response;
 
         const team = await getTeamByName(name);
@@ -53,21 +58,27 @@ const getTeamMembers = async (req, res, next) => {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'Team not found' };
         } else {
-            const teamMembers = await getMembersByTeamId(team.id);
+            const membership = await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: userId });
 
-            const mappedTeamMembers = await Promise.all(
-                teamMembers.map(async (member) => {
-                    const user = await getUserById(member.user_id);
-                    return {
-                        id: member.id,
-                        user,
-                        team
-                    };
-                })
-            );
+            if (!membership) {
+                status = HTTP_STATUS.FORBIDDEN;
+                response = { };
+            } else {
+                const teamMembers = await getMembersByTeamId(team.id);
+                const mappedTeamMembers = await Promise.all(
+                    teamMembers.map(async (member) => {
+                        const user = await getUserById(member.user_id);
+                        return {
+                            id: member.id,
+                            user,
+                            team
+                        };
+                    })
+                );
 
-            status = HTTP_STATUS.OK;
-            response = mappedTeamMembers;
+                status = HTTP_STATUS.OK;
+                response = mappedTeamMembers;
+            }
         }
 
         res.status(status).json(response);
@@ -81,6 +92,7 @@ const postTeamMember = async (req, res, next) => {
         const { username, teamname } = req.body;
         const user = await getUserByUsername(username);
         const team = await getTeamByName(teamname);
+        const requestUserId = req.user.id;
         let status, response;
 
         if (!user || !team) {
@@ -89,6 +101,9 @@ const postTeamMember = async (req, res, next) => {
         } else if (await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: user.id })) {
             status = HTTP_STATUS.CONFLICT;
             response = { error: 'Could not add user to team' }
+        } else if (!(await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: requestUserId }))) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
         } else {
             let teamMember = await createTeamMember({ team_id: team.id, user_id: user.id });
             status = HTTP_STATUS.CREATED;
@@ -106,11 +121,15 @@ const deleteTeamMember = async (req, res, next) => {
         const { username, teamname } = req.body;
         const user = await getUserByUsername(username);
         const team = await getTeamByName(teamname);
+        const requestUserId = req.user.id;
         let status, response;
 
         if (!user || !team) {
             status = HTTP_STATUS.NOT_FOUND;
             response = { error: 'User or team not found' };
+        } else if (!(await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: requestUserId }))) {
+            status = HTTP_STATUS.FORBIDDEN;
+            response = { };
         } else {
             const teamMember = await getTeamMemberByTeamIdAndUserId({ team_id: team.id, user_id: user.id });
 
