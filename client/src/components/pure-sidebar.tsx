@@ -108,7 +108,7 @@ export function PureSidebar({ children }: SidebarProps) {
 
         <footer className="sidebar__footer">
           <Link to="/create-team" className="sidebar__footer-button">
-              <Plus size={16} /> Join / Create Team
+              <Plus size={16} /> Create Team
             </Link>
           {/* {canManageTeams && (
             
