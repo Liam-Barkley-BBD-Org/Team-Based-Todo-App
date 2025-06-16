@@ -123,14 +123,13 @@ export default function AddTeamMemberPage() {
                             <fieldset className="form-section">
                                 <legend className="section-title">User to Add</legend>
                                 <div className="form-group">
-                                    <label htmlFor="email" className="form-label">User's Email or Username *</label>
-                                    <input type="text" id="email" className={`form-input ${errors.email ? "error" : ""}`} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter username or email..." required />
+                                    <label htmlFor="email" className="form-label">User's Username *</label>
+                                    <input type="text" id="email" className={`form-input ${errors.email ? "error" : ""}`} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter username..." required />
                                     {errors.email && <div className="error-message">{errors.email}</div>}
                                     <p className="help-text">The user must have an existing account to be added to the team.</p>
                                 </div>
                             </fieldset>
                             <div className="form-actions">
-                                <Link to={`/team-details/${teamName}`} className="btn btn-secondary">Cancel</Link>
                                 <button type="submit" className="btn btn-primary" disabled={addMemberMutation.isPending}>
                                     {addMemberMutation.isPending ? (
                                         <AppLoader />

@@ -142,42 +142,6 @@ export default function CreateTeamPage() {
                 <PureLabel htmlFor="teamName">Team Name</PureLabel>
                 <PureInput id="teamName" placeholder="Enter team name..." value={teamName} onChange={(e) => setTeamName(e.target.value)} />
               </div>
-              <div style={formGroupStyle}>
-                <PureLabel>Invite Members (by username/email)</PureLabel>
-                <div style={emailInputContainerStyle}>
-                  <div style={emailInputWrapperStyle}>
-                    <div style={emailIconStyle}><Mail size={16} /></div>
-                    <PureInput placeholder="Enter email address..." value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} onKeyPress={handleKeyPress} style={{ paddingLeft: "36px" }} />
-                  </div>
-                  <PureButton onClick={handleAddEmail} variant="outline">
-                    <Plus size={16} style={{ marginRight: "8px" }} /> Add
-                  </PureButton>
-                </div>
-                {inviteEmails.length > 0 ? (
-                  <div>
-                    <PureLabel style={{ fontSize: "14px", color: "#6b7280", marginBottom: "8px" }}>Invited Members ({inviteEmails.length})</PureLabel>
-                    <div style={emailListStyle}>
-                      {inviteEmails.map((email, index) => (
-                        <div key={index} style={emailItemStyle}>
-                          <div style={emailItemLeftStyle}>
-                            <Mail size={16} color="#6b7280" />
-                            <span style={{ fontSize: "14px" }}>{email}</span>
-                          </div>
-                          <button style={removeButtonStyle} onClick={() => handleRemoveEmail(email)} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#dc2626"; e.currentTarget.style.color = "white"; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "#6b7280"; }}>
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div style={emptyStateStyle}>
-                    <Users size={32} color="#9ca3af" style={{ margin: "0 auto 8px" }} />
-                    <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>No members invited yet</p>
-                    <p style={{ fontSize: "12px", margin: 0 }}>Add members to invite them to the team</p>
-                  </div>
-                )}
-              </div>
               <div style={{ paddingTop: "16px" }}>
                 <PureButton onClick={handleCreateTeam} disabled={!teamName.trim() || createTeamMutation.isPending} style={{ width: "100%", padding: "12px 24px", fontSize: "16px" }}>
                   {createTeamMutation.isPending ? (
@@ -197,8 +161,6 @@ export default function CreateTeamPage() {
                 <h4 style={infoTitleStyle}>What happens next?</h4>
                 <ul style={infoListStyle}>
                   <li>Your team will be created and you'll be the owner</li>
-                  <li>An invitation will be sent to all added members</li>
-                  <li>Members can join by accepting the invitation</li>
                   <li>You can manage members later from the team settings</li>
                 </ul>
               </div>

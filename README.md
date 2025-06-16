@@ -18,6 +18,7 @@
 - ENCRYPTION_KEY=12345678901234567890123456789012 
 
 3. Start the server
+Note: migrations will run on server start.
 
 ```
 $ cd server
